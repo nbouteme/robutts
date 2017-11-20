@@ -1,0 +1,457 @@
+#+STARTUP: showall
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:nil arch:headline
+#+OPTIONS: author:t broken-links:nil c:nil creator:nil
+#+OPTIONS: d:(not "LOGBOOK") date:t e:t email:nil f:t inline:t num:t
+#+OPTIONS: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
+#+OPTIONS: timestamp:t title:t toc:t todo:t |:t
+#+TITLE: Documentation
+#+AUTHOR: Nabil Boutemeur \\
+#+AUTHOR: Alizé Nagel
+#+EMAIL: nabil.boutemeur@gmail.com
+#+LANGUAGE: fr
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
+#+CREATOR: Nabil BOUTEMEUR
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [12pt,french]
+#+LATEX_HEADER: \usepackage{babel}
+#+LATEX_HEADER_EXTRA: \usepackage{fullpage}
+#+LATEX_HEADER_EXTRA: \usepackage{minted}
+#+LATEX_HEADER_EXTRA: \usepackage[defaultlines=10,all]{nowidow}
+#+DESCRIPTION:
+#+KEYWORDS:
+#+SUBTITLE:
+#+LATEX_COMPILER: pdflatex
+#+DATE: \today
+
+
+\widowpenalties 1 10000
+\raggedbottom
+\interlinepenalty 10000
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\renewcommand\thesubsubsection{}
+\clearpage
+
+* Robutts
+
+Robutts (de RObot et headBUTT) est un jeu où des robots en forme de
+robot aspirateur se combattent en arène. Il y a plusieurs facon
+d'éliminer des robots adverse ainsi que quelque mécanique laissé libre
+au joueur pour faciliter certaines stratégies.
+
+** Fonctionnement technique
+
+Un robot est une machine circulaire composé de 64 capteurs
+uniformément répartis sur son cercle externe, un moteur linéaire
+réversible, et un moteur angulaire réversible, et d'une certaine
+masse.  Il possède aussi un sac de capacité infinie pour stocker des
+objets qu'il collecte et qui sont utilisable.
+
+Le programme fonctionne à travers un protocole de communication
+interprocessus.  Le programme d'un robot, le client, communique au
+programme hôte dans un premier temps des caractéristiques intrinsèque
+au robot, puis le serveur et client s'échange des suites de
+messages. Le serveur communique l'état du robot, comme son score, sa
+santé, ce que ses capteurs voient, et le contenu de son sac.  Le
+client peut quant à lui, faire des requêtes, comme par exemple
+signaler au serveur qu'il veut utiliser un objet.
+
+Ce système permet d'éviter qu'un robot mal programmé, que ce soit
+intentionel ou pas, de corrompre l'état du serveur de jeu.  Si un
+robot met trop de temps à répondre au serveur, ou que son programme
+plante, ou que son programme réponds mal à une requête du serveur, il
+est automatiquement tué.
+
+En début de partie, les robots sont placé sur leur "spawn", tel que
+défini dans l'arène.
+
+L'arène de jeu est une image TGA non compressée avec 32 bits de
+profondeur et origine haut-gauche, de 1280 par 720 pixels. Un pixel
+est un mur si il est complètement noir. Si un pixel est rouge, c'est
+un point de spawn, et un robot sera placé dessus en début de partie si
+il y a besoin.  Un pixel bleu correspond à un spawn d'item. Toute les
+6 secondes environ, un point de spawn d'item est choisi au hasard et
+un objet au hasard est placé dessus. Si il n'y a pas assez de spawn
+pour tout les robots, le programme quitte.
+
+Il existe 3 types d'objet spawnable:
+
+- Un point, qui va s'ajouter au score du robot qui le ramasse.
+- Un Poivron GNU, qui donne 20 points de vie supplémentaire au robot qui le ramasse
+- Une bombe, qui est utilisable et ajoutée au sac. Lors de
+  l'activation, une bombe est entérée, cachée sous le sol,
+  invisible. Le robot se voit alors donné un objet Détonateur qui
+  permet de faire exploser la bombe à distance.
+
+\pagebreak
+
+*** Physique
+
+Un robot peut entrer en contact avec deux obstacles principaux:
+
+- Un autre robot, auquel cas les deux voient leur direction de
+  déplacement modifiée en fonction de leur vitesse relatives et de
+  leur masse. Les dégats subit par les deux parties dépende de la
+  force du choc que chaqu'un absorbe.
+- Avec un mur, dans ce cas le robot voit sa trajectoire modifiée selon
+  la réfléction de son angle d'incidence avec la normale de la surface
+  du mur
+
+[[file:coll.png]]
+
+Pour la détection de collision, les information des capteurs du robots
+sont réutilisés. Les capteurs sont capable de retenir la profondeur et
+le type de l'obstacle qui leurs font face.  Pour récuperer cette
+information, un algorithme de raycasting rayon-cercle est effectué
+pour les obstacles de type objet ou robot. Ensuite l'algorithme
+détermine la présence ou non d'un mur entre le capteur et l'objet qui
+fait face au capteur, avec un algorithme de tracage de ligne naif.
+
+Si un capteur rapporte une profondeur inférieure à un certain epsilon,
+alors on considere le robot comme faisant contact avec cette entitée.
+À l'initialisation du programme d'un robot, il lui est demandé de
+fournir le quintuplé de caractéristiques qui consiste en la puissance
+de ses deux moteurs, sa masse, sa couleur et son nom. Chacune de ces
+caractéristiques doivent être supérieure à 1, et la somme des trois ne
+peut dépasser 5.
+
+Si cette contrainte n'est pas respectée, le robot est automatiquement
+tué en début de partie.  Le jeu termine lorsqu'un robot atteint un
+score de 10 points. Les autre robots sont tués.  Ou bien qu'il devient
+le seul survivant.  Un jingle de victoire est joué en fin de parti si
+le flag de compilation correspondant est actif.
+
+** Communication
+
+La communication entre le serveur et un de ses clients se fait au
+travers de deux pipe.  Le serveur se fork et le processus enfant
+redirige son entrée/sortie standard sur ces pipes.
+
+L'avantage de ce système est qu'en plus d'assurer l'intégritée du
+serveur, on permet aussi aux programmes d'être implémenté de manière
+plus flexible, par exemple en utilisant des bibliothèques externes, ou
+servire de proxy pour un autre programme qui tourne sur une autre
+machine sur le réseau, qui se contenterai de transférer les données
+écrites par le serveur en guise de client, et de lire les données
+écrites par le client et de les transmettre au serveur.  Aussi,
+n'importe quel exécutable peut faire office de client, quelque soit le
+language dans lequel il est écrit.
+
+\pagebreak
+
+** Protocole
+
+Le serveur de jeu envoie de manière déterministe à un client des
+requetes, pour tout les clients dans l'ordre qu'ils ont été passé en
+ligne de commande.
+
+Voici la liste des commandes pouvant être envoyés par le serveur:
+- CMD_INIT = 0, Demande au client d'envoyer les configurations de son
+  robot
+- CMD_UPDATE_STATE = 1, Dis au client que son état a changé et lui
+  donne son nouvel état
+- CMD_UPDATE = 2, Demande au client le nouvel état de ses moteurs
+- CMD_DESTROY = 3, Dis au client qu'il est mort. Un client qui est
+  mort parce que sont programme a crashé, mal répondu, ou mis trop de
+  temps à répondre ne recevra pas ce message
+- CMD_COLLECT = 4, Dis au client qu'un nouvel objet a été placé dans son sac
+- CMD_COLLISION = 5, Dis au client qu'il est entré en contact avec un obstacle.
+
+Pour chacune de ces commandes, le serveur s'attend à recevoir une
+liste de requetes terminée par un marqueur de fin.
+
+La liste de commandes:
+
+- REQ_INIT = 0, Inutilisé
+- REQ_UPDATE = 1, Dis au serveur que ce client est pret à lui donner l'état de ses moteurs
+- REQ_USE_ITEM = 2, Demande au serveur d'utiliser un objet à un
+  certain indice dans son sac. Le serveur répond avec si il a pu ou
+  pas utiliser l'objet
+- REQ_END = 3, Signale la fin des requetes
+
+Si le client met trop de temps à finir sa suite de commandes, il est tué.
+
+\iffalse
+
+
+#+begin_src plantuml :file sequence_com.png
+skinparam dpi 300
+skinparam monochrome true
+== Initialisation ==
+Serveur -> Client: CMD_INIT
+Serveur <- Client: Properties
+
+== Commande CMD_UPDATE_STATE ==
+
+Serveur -> Client: CMD_UPDATE_STATE
+Serveur -> Client: État
+Serveur -> Client: Sac
+Serveur -> Client: Profondeur
+Serveur -> Client: Attributs
+
+== Commande CMD_UPDATE ==
+
+Serveur -> Client: CMD_UPDATE
+Serveur <- Client: << Flux de requetes >>
+
+== Commande CMD_DESTROY ==
+
+Serveur -> Client: CMD_DESTROY
+Serveur <- Client: << Flux de requetes >>
+
+== Commande CMD_COLLISION ==
+
+Serveur -> Client: CMD_COLLISION
+Serveur -> Client: <type>
+Serveur <- Client: << Flux de requetes >>
+
+== Commande CMD_COLLECT ==
+
+Serveur -> Client: CMD_COLLISION
+Serveur -> Client: <type>
+Serveur <- Client: << Flux de requetes >>
+
+
+
+#+end_src
+
+#+RESULTS:
+[[file:sequence_com.png]]
+
+#+begin_src plantuml :file sequence_req.png
+skinparam dpi 300
+skinparam monochrome true
+
+== Flux de requêtes ==
+
+Serveur <- Client: <<Requete>>
+activate Serveur
+
+Serveur --> Client: <<Réponse>>
+deactivate Serveur
+
+Serveur <- Client: <<REQ_END>>
+
+== REQ_UPDATE ==
+
+Client -> Serveur: REQ_UPDATE
+Client -> Serveur: <<État moteurs>>
+
+== REQ_USE_ITEM ==
+
+Client -> Serveur: REQ_USE_ITEM
+Client -> Serveur: <<Indice>>
+Client <- Serveur: <<Status>>
+
+
+#+end_src
+
+#+RESULTS:
+[[file:sequence_req.png]]
+
+#+BEGIN_SRC sh :file seq_cont.png
+convert +append sequence_com.png sequence_req.png png:-
+#+END_SRC
+
+#+RESULTS:
+[[file:seq_cont.png]]
+
+
+\fi
+
+#+attr_latex: :width 6cm
+[[file:seq_cont.png]]
+
+\pagebreak
+
+** Détails d'implémentation
+
+*** Détection des morts.
+
+Un robot peut être tué pour plusieurs raisons. Un des problèmes
+rencontrés est comment savoir si un robot a mis trop de temps à
+répondre si le programme principal est coincé dans un appel système
+bloquant.
+
+Pour palier à ce problème, au début, le programme règle une
+interception des signaux SIGALRM et SIGPIPE. Avant d'envoyer les
+requêtes aux clients, l'état actuel est sauvegardé avec sigset_jmp et
+une alarme de 10 millisecondes est armée. Si le client termine à
+temps, alors l'alarme est désarmée, sinon le signal SIGALRM sera émis
+et fera quitté le serveur de son appel système, qui va alors restaurer
+l'état sauvegardé. À la restauration, le robot sera tué.  Pour le cas
+ou le processus meurt, le serveur ne pourra pas écrire dans le pipe
+sans générer un SIGPIPE, qui sera capturé et le robot sera tué par le
+même mécanisme que décrit dessus.
+
+*** Initialisation
+
+Le serveur de jeu commence par régler l'interception des signaux
+SIGPIPE et SIGARLM, de régler une fonction de nettoyage qui libèrera
+la mémoire utilisée par le contexte de jeu à la sortie, d'initialiser
+glut et les fonctions OpenGL (soit avec GLEW, soit avec un chargeur
+d'extension écrit à la main, selon un flag de compilation), et
+initialiser le contexte de jeu.
+
+L'initialisation du jeu consiste à charger des ressources, textures et
+bruitages (si le flag approprié est actif), et remplirs les structures
+de données necessaires à avoir l'état du jeu dans un état consistant,
+puis de spawner les robots.
+
+Enfin le programme lance la boucle d'évènement de glut. Comme aucune
+garantie n'est données quant à la fréquence de raffraichissement sous
+glut, la fonction de logique de jeu mesure le temps écoulé entre
+chaque appel et décide si il est temps ou non de mettre à jour l'état.
+
+*** Textures
+
+Les textures sont toutes au format TGA 32 bit non-compressé avec le
+bit d'origine à 1. Ce format a été préféré car en plus d'être très
+flexible, il reste plus simple que BMP qui a plusieurs versions de
+headers plus ou moins longues, PPM qui mélange des données binaires
+avec des données textuelles et des commentaires.
+
+*** Objets
+
+Les objets sont représenté par une structure indiquant leur type, leur
+position, et un pointeur dit utilisateur qui permet de conserver un
+état privé dans le but d'être utilisé pour implémenter simplement de
+nouveau objets.
+
+Chaque type d'objet possède une entrée dans une table virtuelle
+décrivant 4 fonctions d'interface d'objet:
+
+- init, appelé lorsqu'un objet est instancié
+- update, appelé à la fin de chaque boucle de mise à jour de jeu
+- activate, appelé lorsqu'un robot utilise un objet, que ce soit par
+  contact ou à partir de son sac
+- destroy, appelé lorsque un objet est retiré du champ de jeu
+
+Les objets bombe, détonateur et l'explosion sont des exemples montrant
+la fléxibilité de ce système.
+
+Il existe 3 objets dit collectible:
+
+#+attr_latex: :width 2cm
+[[file:./score.png]]
+
+Un point: Donne 1 points de score.
+
+#+attr_latex: :width 2cm
+[[file:./life.png]]
+Un GNU Pepper: Donne 20 points de vie
+
+#+attr_latex: :width 2cm
+[[file:./bomb.png]]
+Une bombe: Ajoute une bombe au sac.
+
+Une explosion est implémentée comme un objet:
+#+attr_latex: :width 2cm
+[[file:./exp.png]]
+Une explosion: Inflige dommages et knockback par contact.
+
+Une bombe peut résider à la fois sur le terrain, et dans le sac d'un
+robot.  Le détonateur ne peut éxister que dans un sac.  Lorsqu'une
+bombe est activée à partir d'un contact, elle est ajoutée au sac du
+robot.  Quand elle est activée à partir du sac, elle devient un
+détonateur qui lui meme génerera à l'activation, une explosion à la
+position du robot au moment de sa création.
+
+*** Dessin
+
+Pour déssiner l'état du jeu, plutôt que d'utiliser la pipeline à
+fonction fixe d'OpenGL avant la version 2, il est requis d'utiliser
+OpenGL 3.3 minimum, pour avoir accès aux shaders et GLSL 330.
+
+Le dessin consiste à effacer l'écran, dessiner l'arrière plan, puis
+dessiner les robots, puis dessiner les objets.
+
+Un seul shader est utilisé pour dessiner, et est constitué en deux
+stages.  Le vertex shader transforme les sommets passés en entrées (6
+sommets qui constituent deux triangles formant un carré), selon des
+variables dites uniformes, qui sont constantes pour l'éxécution d'un
+appel de dessin. Ces variables sont des matrices qui permettent de
+transformer dans un premier temps ce carré selon une matrice de
+"model", qui représente les transformations locales à l'image qui doit
+être affiché (rotation, position, taille). Une fois le carré
+transformé selon le model, il est transformé selon la matrice de
+projection, qui permet de placer ces points dans un repère entre [-1; 1]
+sur les deux axes, alors que le model donne des coordonnées dans un
+espace compris entre [0; 1280] horizontalement et [0; 720]
+verticalement. Il écrit aussi en sortie les coordonnées de textures
+pour le fragment shader.  Une coordonnées de texture décrit, pour un
+point, à quel texel (couleur) correspond ce point dans la texture.
+
+Le fragment shader s'occupe d'écrire la couleur necessaire dans le
+tampon de couleur.  Il est exécuté pour chaque pixel (fragment) qui
+est sur un triangle composant le carré.  Le fragment shader se
+contente d'echantilloner la texture à la coordonnées de texture donnée
+en entrée par le vertex shader, en prenant soin d'interpoler ses
+valeurs.  La couleur échantillonée est multipliée par une variable
+uniforme donnée, généralement blanche pour garder la couleur originale
+échantillonée, mais change de valeur pour les robots qui peuvent avoir
+différentes couleurs.
+
+*** Sons
+
+Si le flag de compilation approprié est utilisé, les bruitages seront
+activé.
+
+Les bruits sont joué pour lorsqu'un robot ramasse un objet, utilise
+une bombe, une explosion se produit, ou le jeu finit.
+
+La bibliothèque utilisé est OpenAL avec ALUT, car simple et
+philosophiquement proche d'OpenGL/GLUT dans leur fonctionnement.
+
+** Joueur humain
+
+Prenons exemple sur l'implémentation d'un joueur humain.
+
+Le fichier librobutts.c défini une interface à implémenter pour créer
+son robot.
+
+\begin{minted}{c}
+void init(int, char *[]) __attribute__ ((weak, alias("do_nothing")));
+void update() __attribute__ ((weak, alias("do_nothing")));
+void destroy() __attribute__ ((weak, alias("do_nothing")));
+void item_collected(item_t) __attribute__ ((weak, alias("do_nothing")));
+void collision(coll_t) __attribute__ ((weak, alias("do_nothing")));
+
+robot_state my_state;
+
+robot_properties my_robot __attribute__ ((weak)) = {
+	1.0f,
+	1.0f,
+	10.0f,
+	0x00FF00FF,
+	"Default bot"
+};
+\end{minted}
+
+Si vous n'implémentez pas une méthode, elle est remplacé par une
+méthode qui ne fait rien, ce qui n'est pas génant.
+
+my_state est une variable globale qu'il faut eventuellement modifier à
+chaque fois qu'update est appelée. Les seule modification effectives
+sont pour l'états des moteurs, le reste des états concerne le sac, les
+capteurs, le score et la santé.  my_robot est une variable globale
+peut être déclarée dans votre programme, initialisée inline, ou bien
+vous pouvez utiliser la déclaration par défaut, et modifier ses
+membres dans la fonction init.
+
+Le fichier human_bot.c défini un joueur humain, controllable au
+clavier.  Les flèches gauche et droite active le moteur angulaire, et
+haut et bas actives le moteur linéaire.  La touche espace utilise le
+premier objet du sac, la touche K fait quitter brusquement le
+processus, et L le fait tourner dans une boucle infinie.
+
+Une fenètre apparait et montre visuellement les rayons "émis" par les
+capteurs, et la couleur des rayons indique le type de l'objet
+touché. Jaune pour un mur, Cyan pour un objet, et blanc pour un autre
+robot. Chaque ligne va aussi loin que la profondeur décrite par le
+capteur, et le placement des lignes est relatif à l'avant du robot, ce
+qui permet de visuallement reconstruire l'environnement.
+
+#+attr_latex: :width 7cm
+[[file:ex.png]]

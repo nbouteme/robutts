@@ -1,0 +1,77 @@
+[
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/os.c.o   -c /home/lillie/robutts/src/os.c",
+  "file": "/home/lillie/robutts/src/os.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/fs.c.o   -c /home/lillie/robutts/src/fs.c",
+  "file": "/home/lillie/robutts/src/fs.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/robot.c.o   -c /home/lillie/robutts/src/robot.c",
+  "file": "/home/lillie/robutts/src/robot.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/audio.c.o   -c /home/lillie/robutts/src/audio.c",
+  "file": "/home/lillie/robutts/src/audio.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/shader.c.o   -c /home/lillie/robutts/src/shader.c",
+  "file": "/home/lillie/robutts/src/shader.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/texture.c.o   -c /home/lillie/robutts/src/texture.c",
+  "file": "/home/lillie/robutts/src/texture.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/sprite.c.o   -c /home/lillie/robutts/src/sprite.c",
+  "file": "/home/lillie/robutts/src/sprite.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/items.c.o   -c /home/lillie/robutts/src/items.c",
+  "file": "/home/lillie/robutts/src/items.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/scene.c.o   -c /home/lillie/robutts/src/scene.c",
+  "file": "/home/lillie/robutts/src/scene.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/vec2.c.o   -c /home/lillie/robutts/src/vec2.c",
+  "file": "/home/lillie/robutts/src/vec2.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/vec3.c.o   -c /home/lillie/robutts/src/vec3.c",
+  "file": "/home/lillie/robutts/src/vec3.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/vec4.c.o   -c /home/lillie/robutts/src/vec4.c",
+  "file": "/home/lillie/robutts/src/vec4.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/mat3.c.o   -c /home/lillie/robutts/src/mat3.c",
+  "file": "/home/lillie/robutts/src/mat3.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/mat4.c.o   -c /home/lillie/robutts/src/mat4.c",
+  "file": "/home/lillie/robutts/src/mat4.c"
+},
+{
+  "directory": "/home/lillie/robutts/build/src",
+  "command": "/usr/bin/cc  -I/home/lillie/robutts/include -I/home/lillie/robutts/build/include   -std=gnu11 -g -Wall -Wextra -Werror   -o CMakeFiles/robutts.dir/robutt.c.o   -c /home/lillie/robutts/src/robutt.c",
+  "file": "/home/lillie/robutts/src/robutt.c"
+}
+]
