@@ -1,4 +1,6 @@
 #include <robutts.h>
+#include <scene.h>
+#include <robot.h>
 
 int intersect_ray_circle(ray_t ra, vec2_t pos, float r, float *d) {
 	vec2_t f = vec2_sub(ra.ori, pos);

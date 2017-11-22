@@ -1,4 +1,6 @@
 #include <robutts.h>
+#include <sprite.h>
+#include <shaders.h>
 
 sprite_renderer_t *make_sprite_renderer() {
 	sprite_renderer_t *self = malloc(sizeof(*self));

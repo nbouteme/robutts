@@ -1,5 +1,7 @@
 #include <robutts.h>
 #include <assert.h>
+#include <assets.h>
+#include <texture.h>
 
 typedef struct {
 	u16 first_entry;

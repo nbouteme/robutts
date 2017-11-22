@@ -1,5 +1,6 @@
 #include <robutts.h>
 #include <assert.h>
+#include <assets.h>
 
 int load_shader(const char *filename, int type) {
 	unsigned s;

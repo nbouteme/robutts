@@ -1,4 +1,5 @@
 #include <robutts.h>
+#include <assets.h>
 
 typedef struct file_ent {
 	char *filename;

@@ -1,4 +1,5 @@
 #include <robutts.h>
+#include <process.h>
 
 long nano_diff(struct timespec a, struct timespec b) {
 	long acc = 0;

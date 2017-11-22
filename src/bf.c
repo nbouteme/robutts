@@ -1,6 +1,7 @@
 #include "librobutts.h"
 #include <robutts.h>
 #include <string.h>
+#include <assets.h>
 
 robot_properties my_robot = {
 	2.5, 1.5, 1, 0xFFFF00, "bf interpret"

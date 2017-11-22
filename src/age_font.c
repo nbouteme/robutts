@@ -1,4 +1,6 @@
 #include <robutts.h>
+#include <font.h>
+#include <assets.h>
 
 struct age_symbol {
 	unsigned id;

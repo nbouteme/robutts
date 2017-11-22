@@ -2,55 +2,89 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <robutts.h>
-#include <GLFW/glfw3.h>
+#include <shaders.h>
+#include <mat4.h>
 
 robot_properties my_robot = {
 	1.0f, 2.0f, 1.0f, 0x0FFF00, "default name"
 };
 
-static void error_callback(int error, const char* description)
-{
-	(void)error;
-    fprintf(stderr, "Error: %s\n", description);
-}
-
 int up, right, left, down, use;
 
-GLFWwindow* window;
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+/*
+  La gestion des touches de glut est maladroite
+ */
+static void key_callback(unsigned char key, int x, int y)
 {
-	(void)scancode;
-	(void)mods;
-	(void)window;
-	if (action == GLFW_REPEAT)
-		return;
-	if (key == GLFW_KEY_UP) {
-		up = action;
-	}
-	if (key == GLFW_KEY_DOWN) {
-		down = action;
-	}
-	if (key == GLFW_KEY_LEFT) {
-		left = action;
-	}
-	if (key == GLFW_KEY_RIGHT) {
-		right = action;
-	}
-	if (key == GLFW_KEY_K) {
+	(void)x;
+	(void)y;
+	if (key == 'k') {
 		exit(43);
 	}
-	if (key == GLFW_KEY_L) {
+	if (key == 'l') {
 		while(1);
 	}
-	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+	if (key == ' ') {
 		use = 1;
+	}
+}
+
+static void skey_callback(int key, int x, int y)
+{
+	(void)x;
+	(void)y;
+	if (key == GLUT_KEY_UP) {
+		up = 1;
+	}
+	if (key == GLUT_KEY_DOWN) {
+		down = 1;
+	}
+	if (key == GLUT_KEY_LEFT) {
+		left = 1;
+	}
+	if (key == GLUT_KEY_RIGHT) {
+		right = 1;
+	}
+}
+
+static void skeyup_callback(int key, int x, int y)
+{
+	(void)x;
+	(void)y;
+	if (key == GLUT_KEY_UP) {
+		up = 0;
+	}
+	if (key == GLUT_KEY_DOWN) {
+		down = 0;
+	}
+	if (key == GLUT_KEY_LEFT) {
+		left = 0;
+	}
+	if (key == GLUT_KEY_RIGHT) {
+		right = 0;
 	}
 }
 
 int shader;
 unsigned vao;
 int du, cu;
+
+void display_sensors_state() {
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(shader);
+
+	glUniform1iv(cu, 64, (int*)my_state.obj_attr_buffer);
+	glUniform1fv(du, 64, my_state.depth_buffer);
+
+	glBindVertexArray(vao);
+    glDrawArrays(GL_LINES, 0, 128);
+
+	glUseProgram(0);
+    glBindVertexArray(0);
+	glutSwapBuffers();
+}
 
 void init(int argc, char *argv[]) {
 	(void)argc;
@@ -60,30 +94,20 @@ void init(int argc, char *argv[]) {
 		return;
 	already = 1;
 	use = 0;
-    glfwSetErrorCallback(error_callback);
-    if (!glfwInit())
-        exit(EXIT_FAILURE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    window = glfwCreateWindow(256, 256, "muhbot", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-    glfwSetKeyCallback(window, key_callback);
-    glfwMakeContextCurrent(window);
-	glewExperimental = 1;
-	GLenum err = glewInit();
-	if (GLEW_OK != err) {
-		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-	}
-    glfwSwapInterval(1);
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STENCIL);
+	glutInitContextVersion(3, 3);
+	glutInitContextFlags(GLUT_FORWARD_COMPATIBLE | GLUT_DEBUG);
+	glutInitWindowSize(256, 256);
+	glutCreateWindow("Human bot");
+	glutDisplayFunc(display_sensors_state);
+	glutKeyboardFunc(key_callback);
+	glutSpecialFunc(skey_callback);
+	glutSpecialUpFunc(skeyup_callback);
+	glInit();
 
 	unsigned vbo;
     float *vertices = calloc(sizeof(float) * 4, 64);
-
 	float adelta = 2 * M_PI / 64.0;
 	vec2_t c = {256, 256};
 	for(int i = 0; i < 64; ++i) {
@@ -122,25 +146,13 @@ void init(int argc, char *argv[]) {
 }
 
 void update_state() {
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glUseProgram(shader);
-
-	glUniform1iv(cu, 64, (int*)my_state.obj_attr_buffer);
-	glUniform1fv(du, 64, my_state.depth_buffer);
-
-	glBindVertexArray(vao);
-    glDrawArrays(GL_LINES, 0, 128);
-
-    glBindVertexArray(0);
-	glfwSwapBuffers(window);
-	glfwPollEvents();
+	glutPostRedisplay();
+	glutMainLoopEvent();
 }
 
 void update() {
-	my_state.lin_eng_state = (up == GLFW_PRESS) - (down == GLFW_PRESS);
-	my_state.rot_eng_state = (left == GLFW_PRESS) - (right == GLFW_PRESS);
+	my_state.lin_eng_state = up - down;
+	my_state.rot_eng_state = left - right;
 	if (use) {
 		use = 0;
 		use_item(0);
@@ -148,8 +160,6 @@ void update() {
 }
 
 void destroy() {	
-	glfwDestroyWindow(window);
-    glfwTerminate();
 }
 
 void item_collected(item_t i) {

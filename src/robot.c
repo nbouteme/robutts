@@ -1,4 +1,9 @@
 #include <robutts.h>
+#include <robot.h>
+#include <sprite.h>
+#include <scene.h>
+#include <texture.h>
+#include <font.h>
 
 void send_command(robot_t *r, command_t cmd) {
 	int e = write(r->process.stdin, &cmd, sizeof(cmd));

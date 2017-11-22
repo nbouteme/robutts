@@ -3,7 +3,7 @@
 void *glutGetProcAddress(const char *procName);
 
 #define INIT_FUN(x) \
-	if (!(x = glutGetProcAddress(#x))) return 0;	\
+	if (!(x = glutGetProcAddress(#x))) return 0	\
 
 int glInit() {
 	INIT_FUN(glCreateShader);
@@ -31,6 +31,7 @@ int glInit() {
 	INIT_FUN(glUniform1i);
 	INIT_FUN(glUniformMatrix4fv);
 	INIT_FUN(glUniform3fv);
-
+	INIT_FUN(glUniform1fv);
+	INIT_FUN(glUniform1iv);
 	return 1;
 }

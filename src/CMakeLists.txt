@@ -164,19 +164,20 @@ ADD_EXECUTABLE(human_bot
   vec4.c
   mat3.c
   mat4.c
+  mgl.c
   assets_manager.c
   assets.o
 )
 
 TARGET_LINK_LIBRARIES(human_bot
   glfw
-  GLEW
   ${GL_LIBRARIES}
+  glut
   m
 )
 
 SET_TARGET_PROPERTIES(human_bot
-  PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DUSE_GLEW -DASSET_MANAGER"
+  PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DASSET_MANAGER"
   LINK_FLAGS "-T ${PROJECT_SOURCE_DIR}/build/s")
 
 ADD_EXECUTABLE(visualizer
@@ -186,6 +187,7 @@ ADD_EXECUTABLE(visualizer
   shader.c
   fs.c
   os.c
+  mgl.c
   vec2.c
   vec3.c
   vec4.c
@@ -197,13 +199,13 @@ ADD_EXECUTABLE(visualizer
 
 TARGET_LINK_LIBRARIES(visualizer
   glfw
-  GLEW
   ${GL_LIBRARIES}
+  glut
   m
 )
 
 SET_TARGET_PROPERTIES(visualizer
-  PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DUSE_GLEW -DASSET_MANAGER"
+  PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DASSET_MANAGER"
   LINK_FLAGS "-T ${PROJECT_SOURCE_DIR}/build/s")
 
 ADD_EXECUTABLE(switch
@@ -211,17 +213,15 @@ ADD_EXECUTABLE(switch
   librobutts.c
   switch.c
   os.c
+  mgl.c
 )
 
 TARGET_LINK_LIBRARIES(switch
   glfw
-  GLEW
   ${GL_LIBRARIES}
   m
+  glut
 )
-
-SET_TARGET_PROPERTIES(switch
-  PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DUSE_GLEW")
 
 ADD_EXECUTABLE(forward
   # helpers

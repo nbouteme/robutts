@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <robutts.h>
 #include <GLFW/glfw3.h>
-#include <sys/types.h>          /* See NOTES */
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <poll.h>
@@ -30,7 +30,7 @@ void init(int argc, char *argv[]) {
 	connect(sfd, (void*)&addr, sizeof(addr));
 	command_t cmd = CMD_INIT;
 	write(sfd, &cmd, sizeof(cmd));
-	read(sfd, &my_robot, sizeof(my_robot));
+	exact_read(sfd, &my_robot, sizeof(my_robot));
 
 	fds = (struct pollfd){sfd, POLLOUT | POLLIN, 0};
 }
@@ -39,13 +39,13 @@ void exec_subcmd_stream() {
 	request_t r;
 	int i;
 	do {
-		read(sfd, &r, sizeof(r));
+		exact_read(sfd, &r, sizeof(r));
 		switch (r) {
 		case REQ_UPDATE:
-			read(sfd, &my_state, sizeof(int) * 2);
+			exact_read(sfd, &my_state, sizeof(int) * 2);
 			break;
 		case REQ_USE_ITEM:
-			read(sfd, &i, sizeof(int));
+			exact_read(sfd, &i, sizeof(int));
 			i = use_item(i);
 			write(sfd, &i, sizeof(int));
 			break;
@@ -56,12 +56,15 @@ void exec_subcmd_stream() {
 }
 
 void update() {
+	static int update_pending = 0;
 	poll(&fds, 1, 0);
 	command_t c = CMD_UPDATE;
-	write(sfd, &c, sizeof(c));
+	if (!update_pending)
+		write(sfd, &c, sizeof(c));
 	if(fds.revents & POLLIN) {
 		poll(&fds, 1, -1);
 		exec_subcmd_stream();
+		update_pending = 1;
 	}
 }
 

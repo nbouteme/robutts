@@ -1,4 +1,12 @@
 #include <robutts.h>
+#include <scene.h>
+#include <robot.h>
+#include <audio.h>
+#include <texture.h>
+#include <assets.h>
+#include <item.h>
+#include <font.h>
+
 #include <assert.h>
 #include <sys/types.h>
 #include <signal.h>

@@ -1,4 +1,8 @@
 #include <robutts.h>
+#include <item.h>
+#include <scene.h>
+#include <audio.h>
+#include <robot.h>
 
 /*
   Ajoute au jeu et initialise un objet.

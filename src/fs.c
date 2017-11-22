@@ -1,4 +1,5 @@
 #include <robutts.h>
+#include <assets.h>
 
 char *readfile_fs(const char *name, unsigned *size) {
 	struct stat s;
