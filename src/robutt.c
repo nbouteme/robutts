@@ -229,7 +229,7 @@ void load_ressources(game_state_t *gs, char *map) {
 		bitmap_t btmp;
 		char fn[25];
 		fn[0] = 0;
-		sprintf(fn, "exp/%03d.tga", i);
+		sprintf(fn, "assets/exp/%03d.tga", i);
 		if (!load_tga(&btmp, fn)) {
 			fprintf(stderr, "Couldn't load texture '%s'\n", fn);
 			exit(1);

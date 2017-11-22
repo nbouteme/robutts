@@ -132,8 +132,8 @@ void init(int argc, char *argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 	
-	int v = load_shader("v_rvisu.glsl", GL_VERTEX_SHADER);
-	int f = load_shader("f_rvisu.glsl", GL_FRAGMENT_SHADER);
+	int v = load_shader("assets/v_rvisu.glsl", GL_VERTEX_SHADER);
+	int f = load_shader("assets/f_rvisu.glsl", GL_FRAGMENT_SHADER);
 	shader = make_shader(v, f);
 	glUseProgram(shader);
 
