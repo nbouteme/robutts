@@ -52,7 +52,7 @@ void bf_run(bf_interpreter_t *self, command_t cmd, int arg) {
 	char *ram = self->ram;
 	char *rom = self->rom;
 	memset(ram, 0, 5);
-	ram[0] = cmd;
+	ram[0] = cmd >> 24;
 	ram[1] = arg;
 	while (rom[ip] != 0 && rom[ip] != '|') {
 		switch (rom[ip]) {
@@ -66,7 +66,7 @@ void bf_run(bf_interpreter_t *self, command_t cmd, int arg) {
 			++ram[dp];
 			if (dp == BF_SVC) {
 				switch (ram[BF_CMD_MR]) {
-				case REQ_USE_ITEM:
+				case (REQ_USE_ITEM >> 24):
 					use_item(ram[BF_CMD_ARG]);
 					break;
 				default:

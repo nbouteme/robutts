@@ -15,6 +15,20 @@ void collision(coll_t)		__attribute__ ((weak, alias("do_nothing")));
 void do_nothing() {
 }
 
+int exact_read(int fd, void *buff, size_t n) {
+	int state;
+	int lefttoread = n;
+	while (lefttoread) {
+		state = read(fd, buff, lefttoread);
+		if (state == -1)
+			return -1;
+		if (state == 0)
+			break;
+		lefttoread -= state;
+	}
+	return n - lefttoread;
+}
+
 robot_state my_state;
 
 robot_properties my_robot __attribute__ ((weak)) = {
@@ -31,7 +45,7 @@ int use_item(int idx) {
 		perror("client write failed");
 	if (write(1, &idx, sizeof(idx)) == -1)
 		perror("client write2 failed");
-	if (read(0, &idx, sizeof(idx)) == -1) {
+	if (exact_read(0, &idx, sizeof(idx)) == -1) {
 		perror("client read failed");
 	}
 	return idx;
@@ -42,7 +56,7 @@ int main(int argc, char *argv[argc])
 	command_t cmd;
 	memset(&my_state, 0, sizeof(my_state));
 
-	while (read(0, &cmd, sizeof(cmd))) {
+	while (exact_read(0, &cmd, sizeof(cmd))) {
 		item_t t;
 		coll_t c;
 		request_t r;
@@ -62,15 +76,15 @@ int main(int argc, char *argv[argc])
 			free(my_state.depth_buffer);
 			free(my_state.obj_attr_buffer);
 			
-			read(0, &my_state, sizeof(my_state));
+			exact_read(0, &my_state, sizeof(my_state));
 
 			my_state.bag				= malloc(sizeof(item_t) * my_state.bag_size);
 			my_state.depth_buffer		= malloc(sizeof(float) * my_state.rays);
 			my_state.obj_attr_buffer	= malloc(sizeof(int) * my_state.rays);
 
-			read(0, my_state.bag, sizeof(item_t) * my_state.bag_size);
-			read(0, my_state.depth_buffer, sizeof(float) * my_state.rays);			
-			read(0, my_state.obj_attr_buffer, sizeof(int) * my_state.rays);
+			exact_read(0, my_state.bag, sizeof(item_t) * my_state.bag_size);
+			exact_read(0, my_state.depth_buffer, sizeof(float) * my_state.rays);			
+			exact_read(0, my_state.obj_attr_buffer, sizeof(int) * my_state.rays);
 			update_state();
 			break;
 		case CMD_UPDATE:
@@ -88,19 +102,21 @@ int main(int argc, char *argv[argc])
 			write(1, &r, sizeof(r));
 			break;
 		case CMD_COLLECT:
-			read(0, &t, sizeof(t));
+			exact_read(0, &t, sizeof(t));
 			item_collected(t);
 			r = REQ_END;
 			write(1, &r, sizeof(r));
 			break;
 		case CMD_COLLISION:
-			read(0, &c, sizeof(c));
+			exact_read(0, &c, sizeof(c));
 			collision(c);
 			r = REQ_END;
 			write(1, &r, sizeof(r));
 			break;
 		default:
-			fputs("Unknown command received", stderr);
+			fprintf(stderr, "Unknown command received %p\n", (void*)c);
+			perror("Read status?:");
+			abort();
 		}
 	}
 	fflush(stderr);

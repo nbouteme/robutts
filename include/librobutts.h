@@ -1,6 +1,8 @@
 #ifndef LIBROBUTTS_H
 #define LIBROBUTTS_H
 
+#include <sys/types.h>
+
 typedef int i32;
 typedef long i64;
 typedef short i16;
@@ -32,12 +34,12 @@ typedef unsigned char u8;
   CMD_COLLISION: Le robot est entré en collision avec un objet solide
  */
 typedef enum {
-	CMD_INIT,
-	CMD_UPDATE_STATE,
-	CMD_UPDATE,
-	CMD_DESTROY,
-	CMD_COLLECT,
-	CMD_COLLISION
+	CMD_INIT = 0x00646d63,
+	CMD_UPDATE_STATE = 0x01646d63,
+	CMD_UPDATE = 0x02646d63,
+	CMD_DESTROY = 0x03646d63,
+	CMD_COLLECT = 0x04646d63,
+	CMD_COLLISION = 0x05646d63
 } command_t;
 
 /*
@@ -53,10 +55,10 @@ typedef enum {
   REQ_END: Le client a fini de faire ses demande et rend la main au serveur
  */
 typedef enum {
-	REQ_INIT,
-	REQ_UPDATE,
-	REQ_USE_ITEM,
-	REQ_END
+	REQ_INIT = 0x00716572,
+	REQ_UPDATE = 0x01716572,
+	REQ_USE_ITEM = 0x02716572,
+	REQ_END = 0x03716572
 } request_t;
 
 typedef enum {
@@ -162,5 +164,12 @@ void item_collected(item_t);
  */
 void collision(coll_t);
 
+/*
+  Lit au moins n octets de fd. Sauf si EOF est atteind, dans
+  ce cas la, la valeur renvoiyée est inférieure à n et les appels
+  successifs renverront 0.
+  En cas d'erreur, -1 est renvoyé et errno est affecté
+ */
+int exact_read(int fd, void *buff, size_t n);
 
 #endif

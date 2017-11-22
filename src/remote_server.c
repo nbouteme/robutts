@@ -51,7 +51,7 @@ int main(int argc, char *argv[argc])
 	addr.sin_addr = sin_addr;
 	bind(sfd, (void*)&addr, sizeof(addr));
 	listen(sfd, 2);
-	socklen_t client_addr_size;
+	socklen_t client_addr_size = sizeof(addr);
 	int client_sock = accept(sfd, (void*)&addr, &client_addr_size);
 
 	make_socket_process(client_sock, &subbot, argv[3]);
