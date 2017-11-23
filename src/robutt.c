@@ -9,9 +9,7 @@
 
 #include <assert.h>
 #include <sys/types.h>
-#include <signal.h>
 #include <sys/wait.h>
-#include <setjmp.h>
 
 static const int g_60fps = ((1.0 / 60) * 1000000000);
 
@@ -50,7 +48,6 @@ void display_game_state() {
 }
 
 void destroy_renderer(sprite_renderer_t *sr) {
-	/* TODO: Delete textures */
 	glDeleteProgram(sr->shader);
 	glDeleteVertexArrays(1, &sr->vao);
 	free(sr);
@@ -65,6 +62,16 @@ void cleanup() {
 		destroy_audio_sample(*f++);
 	destroy_audio_player(gs->sound_player);
 	destroy_renderer(gs->renderer);
+
+	glDeleteTextures(1, &gs->background_tex);
+	glDeleteTextures(1, &gs->robot_tex);
+	glDeleteTextures(1, &gs->i_score_tex);
+	glDeleteTextures(1, &gs->i_life_tex);
+	glDeleteTextures(1, &gs->i_bomb_tex);
+	glDeleteTextures(25, gs->explosion_tex);
+
+	free(gs->nimbus);
+	
 	free(gs->robots);
 	free(gs->items);
 	free(gs->rspawns);
@@ -99,7 +106,7 @@ void kill_timeout(int s) {
 }
 
 void exec_cmd_stream(robot_t *c) {
-	//ualarm(20000, 0);
+	ualarm(20000, 0);
 
 	request_t r;
 	do {
@@ -130,11 +137,9 @@ void exec_cmd_stream(robot_t *c) {
 		case REQ_END:
 			break;
 		default:
-			//r = 0;
 			printf("UREQ %d\n", r);
-			kill_robot(c, D_PROT);
+			sleep(1);
 			r = REQ_END;
-			/* TODO:  kill the robot*/
 		}
 	} while (r != REQ_END);
 	ualarm(0, 0);
@@ -174,7 +179,7 @@ void coalesce_robots() {
 			free(c->state.obj_attr_buffer);
 			free(c->priv.obj_idx_buffer);
 			free(c->priv.bag_buffer);
-			/* TODO: delete texture */
+			glDeleteTextures(1, &c->priv.name_sprite.tid);
 			gs->n_robots--;
 			memmove(c, c + 1, sizeof(robot_t) * (gs->n_robots - i));
 			continue;
@@ -274,7 +279,7 @@ void update_game_state() {
 		int n = sigsetjmp(jb, 1);
 		can_jump = 1;
 		if (n) {
-			ualarm(0, 0);			
+			ualarm(0, 0);
 			kill_robot(c, n);
 		}
 		if (c->dead)
@@ -283,8 +288,7 @@ void update_game_state() {
 		vec2_t my_dir = vec2_rot(vec2_up(), -c->priv.angle);
 		c->priv.linear_speed = vec2_add(c->priv.linear_speed, vec2_muls(my_dir, c->prop.linear_power / c->prop.mass * c->state.lin_eng_state));
 		c->priv.angular_speed += (c->prop.angular_power / c->prop.mass) * c->state.rot_eng_state;
-		/* TODO: divide friction by mass  */
-		c->priv.linear_speed = vec2_muls(c->priv.linear_speed, 0.8f);
+		c->priv.linear_speed = vec2_muls(c->priv.linear_speed, 0.8f / c->prop.mass);
 		c->priv.angular_speed *= 0.8f;
 		c->priv.angle += c->priv.angular_speed;
 		c->priv.pos = vec2_add(c->priv.pos, c->priv.linear_speed);
@@ -339,7 +343,7 @@ void update_game_state() {
 									   c->priv.linear_speed);
 				break;
 			case COLL_ITEM:
-				if (c->priv.ic) /* TODO: est-ce vraiment necessaire? */
+				if (c->priv.ic)
 					break;
 				c->priv.ic = 1;
 				item = &game_state->items[c->priv.obj_idx_buffer[i].item_id];
@@ -453,13 +457,15 @@ int main(int argc, char *argv[argc])
 	load_ressources(gs, argv[1]);
 	fill_rspawns();
 
-	/* TODO: Verifier ici si il y a assez de spawn pour les robots */
 	gs->renderer = make_sprite_renderer();
+	if (argc - 2 > 8) {
+		puts("Il y a trop de robots!");
+		exit(1);
+	}
 
 	robot_t *ro = make_robots(argc - 2, argv + 2);
 	int all = 0;
 	for (int i = 0; i < argc - 2; ++i) {
-		/* TODO: Mettre un timeout pour l'initalisation d'un robot */
 		robot_t *c = ro + i;
 		if (!init_robot(c, gs->rspawns[all++]))
 			c->state.life = -100.0f;

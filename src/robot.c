@@ -72,23 +72,39 @@ void collision_with_robot(robot_t *self, robot_t *other) {
 	self->priv.linear_speed = don;
 	self->priv.pos = vec2_add(other->priv.pos, vec2_muls(vec2_norme(don), 64.0f));
 	other->priv.linear_speed = vec2_add(other->priv.linear_speed, ref);
-	/* TODO: Affliger les dégats */
+
+	energie = sqrtf(vec2_dot(ref, ref));
+	other->state.life -= energie;
+	energie = sqrtf(vec2_dot(don, don));
+	self->state.life -= energie;
 }
 
 int init_robot(robot_t *c, vec2_t position) {
 	int fail = 0;
+
+	can_jump = 1;
+	int n = sigsetjmp(jb, 1);
+	if (n) {
+		alarm(0);
+		return 0;
+	}
+
+	c->priv.pos = position;
+	c->state.life = 100.0f;
+	c->state.rays = 64;
+
+	alarm(3);
 	send_command(c, CMD_INIT);
 	read(c->process.stdout, &c->prop, sizeof(c->prop));
+	alarm(0);
+
 	c->prop.name[31] = 0;
 	fail = ((c->prop.mass < 1 || c->prop.angular_power < 1 || c->prop.linear_power < 1) ||
 			(c->prop.mass + c->prop.angular_power + c->prop.linear_power) > 5.1f);
 	c->prop.angular_power *= 1.0f / 100.0f;
-	c->state.life = 100.0f;
-	c->state.rays = 64;
 	c->state.depth_buffer = calloc(sizeof(float), c->state.rays);
 	c->state.obj_attr_buffer = calloc(sizeof(float), c->state.rays);
 	c->priv.obj_idx_buffer = calloc(sizeof(collarg_t), c->state.rays);
-	c->priv.pos = position;
 
 	bitmap_t nametex;
 	char short_name[12] = {0};

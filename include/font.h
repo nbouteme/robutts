@@ -14,5 +14,4 @@ typedef struct age_font age_font_t;
 
 age_font_t *load_font(char *texfile, char *descfile);
 void *make_string_bitmap(age_font_t *font, char *str, int *w, int *h);
-
 #endif /* FONT_H */

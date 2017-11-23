@@ -57,7 +57,6 @@ defGLFun(GLint, glGetUniformLocation, (GLuint program, const GLchar *name));
 defGLFun(void, glUniform1i, (GLint location, GLint v0));
 defGLFun(void, glUniformMatrix4fv, (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value));
 defGLFun(void, glUniform3fv, (GLint location, GLsizei count, const GLfloat *value));
-
 int glInit();
 #endif
 #endif /* MGL_H */

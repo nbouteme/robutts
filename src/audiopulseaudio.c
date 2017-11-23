@@ -62,12 +62,18 @@ static wav_t *readwav(void *fdata) {
 
 	memcpy(ret, data, sizeof(*ret));
 	ret->fmt_chunk = (void*)&((struct s_wav*)data)->fmt_chunk;
+
+	// normalement il faut aussi offset selon le type du flux (champ extra)
+	// mais on s'en fout puisqu'on gere qu'un seul type dont on sait qu'il
+	// n'y aura jamais de champ extra
 	ret->data_chunk = (void*)(data + sizeof(struct s_fmt) + 12);
 
-	/* TODO: Add checks */
-	/* On veut seulement little endian 16 bits et entre 1 et 2 channels */
-	
-	// data = (char*)ret.fmt_chunk - sizeof(struct s_fmt) - 12;
+	if (ret->fmt_chunk->BitsPerSample != 16 ||
+		ret->fmt_chunk->NumChannels > 2) {
+		free(ret);
+		return 0;
+	}
+	// note: data = (char*)ret.fmt_chunk - sizeof(struct s_fmt) - 12;
 	return ret;
 }
 

@@ -70,8 +70,6 @@ int main(int argc, char *argv[argc])
 			write(1, &my_robot, sizeof(my_robot));
 			break;
 		case CMD_UPDATE_STATE:
-
-			/* TODO: recycler plutot que liberer */
 			free(my_state.bag);
 			free(my_state.depth_buffer);
 			free(my_state.obj_attr_buffer);

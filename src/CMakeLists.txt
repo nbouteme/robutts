@@ -101,6 +101,33 @@ SET_TARGET_PROPERTIES(human_bot
   PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DASSET_MANAGER"
   LINK_FLAGS "-T ${PROJECT_SOURCE_DIR}/build/s")
 
+ADD_EXECUTABLE(heavy_bot
+  # helpers
+  librobutts.c
+  heavy_human.c
+  shader.c
+  fs.c
+  vec2.c
+  vec3.c
+  vec4.c
+  mat3.c
+  mat4.c
+  mgl.c
+  assets_manager.c
+  assets.o
+)
+
+TARGET_LINK_LIBRARIES(heavy_bot
+  glfw
+  ${GL_LIBRARIES}
+  glut
+  m
+)
+
+SET_TARGET_PROPERTIES(heavy_bot
+  PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DASSET_MANAGER"
+  LINK_FLAGS "-T ${PROJECT_SOURCE_DIR}/build/s")
+
 ADD_EXECUTABLE(visualizer
   # helpers
   librobutts.c

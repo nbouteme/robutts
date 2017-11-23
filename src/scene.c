@@ -63,7 +63,6 @@ intersect_data_t raycast_scene(ray_t r, int self) {
 	return ret;
 }
 
-/* TODO: Utiliser des occlusions queries si les perfs deviennent un probleme */
 int raycast_bitmap(ray_t r, float max, intersect_data_t *out) {
 	game_state_t *game_state = get_game_state();
 	unsigned *bmp = game_state->bmp;

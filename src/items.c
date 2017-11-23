@@ -4,6 +4,19 @@
 #include <audio.h>
 #include <robot.h>
 
+/* 
+   TODO: Le prof a dit que "le butin" ne compte que lorsque le robot
+   retourne dans sa "base". "Le butin" fait référence à au moins l'objet
+   score, donc: 
+
+   - Modifier l'objet score pour ne pas immédiatement
+   augmenter le score du robot mais à la place s'ajouter dans le sac
+
+   - Créer un objet "base" qui, sur contact, va prendre les objets "score"
+   du sac et incrémenter le score actuel en fonction.
+   
+*/
+
 /*
   Ajoute au jeu et initialise un objet.
  */
@@ -126,19 +139,6 @@ void explosion_item(pitem_t *self, robot_t *r) {
 	*/
 	r->priv.linear_speed = vec2_add(r->priv.linear_speed, vec2_muls(vec2_norme(dir), mult));
 }
-
-/* 
-   TODO: Le prof a dit que "le butin" ne compte que lorsque le robot
-   retourne dans sa "base". "Le butin" fait référence à au moins l'objet
-   score, donc: 
-
-   - Modifier l'objet score pour ne pas immédiatement
-   augmenter le score du robot mais à la place s'ajouter dans le sac
-
-   - Créer un objet "base" qui, sur contact, va prendre les objets "score"
-   du sac et incrémenter le score actuel en fonction.
-   
-*/
 
 void draw_static_item(pitem_t *self, sprite_renderer_t *sr) {
 	game_state_t *gs = get_game_state();

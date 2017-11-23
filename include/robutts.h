@@ -18,6 +18,8 @@
 
 #include <librobutts.h>
 #include <vec2.h>
+#include <signal.h>
+#include <setjmp.h>
 
 typedef struct s_audio_ctx audio_ctx;
 typedef struct s_wave_ctx wave_ctx;
@@ -25,6 +27,9 @@ typedef struct robot robot_t;
 typedef struct pitem pitem_t;
 typedef struct sprite_renderer sprite_renderer_t;
 typedef struct age_font age_font_t;
+
+extern sigjmp_buf jb;
+extern int can_jump;
 
 /*
   Plutot qu'un design classique de jeu avec entité composants et
