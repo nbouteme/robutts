@@ -2,8 +2,11 @@ Instructions
 ------------
 
 `git clone --depth=1 https://github.com/nbouteme/robutts`
+
 `cd robutts/build`
+
 `cmake ..` ou `cmake -DENABLE_AUDIO=y ..`
+
 `make -j4`
 
 Normalement le tout compile.
