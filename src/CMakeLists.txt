@@ -79,6 +79,7 @@ ADD_EXECUTABLE(human_bot
   librobutts.c
   human_bot.c
   shader.c
+  os.c
   fs.c
   vec2.c
   vec3.c
@@ -106,6 +107,7 @@ ADD_EXECUTABLE(heavy_bot
   heavy_human.c
   shader.c
   fs.c
+  os.c
   vec2.c
   vec3.c
   vec4.c
@@ -170,6 +172,7 @@ TARGET_LINK_LIBRARIES(switch
 ADD_EXECUTABLE(forward
   # helpers
   librobutts.c
+  os.c
   forward_bot.c
 )
 
@@ -177,12 +180,14 @@ ADD_EXECUTABLE(rbf
   # helpers
   librobutts.c
   fs.c
+  os.c
   bf.c
 )
 
 ADD_EXECUTABLE(remote_client
   librobutts.c
   remote_client.c
+  os.c
 )
 
 ADD_EXECUTABLE(remote_server

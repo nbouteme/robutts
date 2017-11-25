@@ -158,10 +158,3 @@ void update() {
 		use_item(0);
 	}
 }
-
-void destroy() {	
-}
-
-void item_collected(item_t i) {
-	(void)i;
-}

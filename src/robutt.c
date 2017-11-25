@@ -106,16 +106,16 @@ void kill_timeout(int s) {
 }
 
 void exec_cmd_stream(robot_t *c) {
-	ualarm(20000, 0);
+	ualarm(50000, 0);
 
 	request_t r;
 	do {
 		int idx;
 		int i;
-		read(c->process.stdout, &r, sizeof(r));
+		exact_read(c->process.stdout, &r, sizeof(r));
 		switch (r) {
 		case REQ_UPDATE:
-			read(c->process.stdout, &c->state, sizeof(int) * 2);
+			exact_read(c->process.stdout, &c->state, sizeof(int) * 2);
 #define ABS(x) (x < 0 ? -x : x)
 			if (c->state.lin_eng_state != 0)
 				c->state.lin_eng_state /= ABS(c->state.lin_eng_state);
@@ -124,7 +124,7 @@ void exec_cmd_stream(robot_t *c) {
 #undef ABS
 			break;
 		case REQ_USE_ITEM:
-			read(c->process.stdout, &idx, sizeof(idx));
+			exact_read(c->process.stdout, &idx, sizeof(idx));
 			i = idx;
 			idx = (idx < c->state.bag_size && idx >= 0);
 			if (write(c->process.stdin, &idx, sizeof(idx)) == -1)

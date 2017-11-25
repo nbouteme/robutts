@@ -8,7 +8,7 @@ char *readfile_fs(const char *name, unsigned *size) {
 		return 0;
 	char *ret = calloc(1, s.st_size + 1);
 	int fd = open(name, O_RDONLY);
-	read(fd, ret, s.st_size);
+	exact_read(fd, ret, s.st_size);
 	if (size)
 		*size = s.st_size;
 	close(fd);

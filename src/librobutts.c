@@ -15,20 +15,6 @@ void collision(coll_t)		__attribute__ ((weak, alias("do_nothing")));
 void do_nothing() {
 }
 
-int exact_read(int fd, void *buff, size_t n) {
-	int state;
-	int lefttoread = n;
-	while (lefttoread) {
-		state = read(fd, buff, lefttoread);
-		if (state == -1)
-			return -1;
-		if (state == 0)
-			break;
-		lefttoread -= state;
-	}
-	return n - lefttoread;
-}
-
 robot_state my_state;
 
 robot_properties my_robot __attribute__ ((weak)) = {

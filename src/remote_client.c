@@ -11,15 +11,16 @@ robot_properties my_robot = {
 	1.0f, 2.0f, 1.0f, 0x0FFF00, "default name"
 };
 
+int update_pending = 0;
 int sfd;
-struct in_addr sin_addr;
-struct sockaddr_in addr;
-socklen_t client_addr_size;
-int client_sock;
-struct pollfd fds;
-void init(int argc, char *argv[]) {
-	(void)argc;
 
+struct pollfd fds;
+
+void init(int argc, char *argv[]) {
+	struct in_addr sin_addr;
+	struct sockaddr_in addr;
+
+	(void)argc;
 	sfd = socket(AF_INET, SOCK_STREAM, 0);
 	inet_aton(argv[1], &sin_addr);
 	addr.sin_family = AF_INET;
@@ -27,15 +28,15 @@ void init(int argc, char *argv[]) {
 	addr.sin_addr = sin_addr;
 
 	connect(sfd, (void*)&addr, sizeof(addr));
+	fds = (struct pollfd){sfd, POLLIN | POLLOUT, 0};
+
 	command_t cmd = CMD_INIT;
 	write(sfd, &cmd, sizeof(cmd));
 	exact_read(sfd, &my_robot, sizeof(my_robot));
-
-	fds = (struct pollfd){sfd, POLLOUT | POLLIN, 0};
 }
 
 void exec_subcmd_stream() {
-	request_t r;
+	request_t r = 0;
 	int i;
 	do {
 		exact_read(sfd, &r, sizeof(r));
@@ -48,62 +49,46 @@ void exec_subcmd_stream() {
 			i = use_item(i);
 			write(sfd, &i, sizeof(int));
 			break;
+		case REQ_END:
+			break;
 		default:
+			fprintf(stderr, "Unknown req from serv END %#x %#x\n", REQ_END, r);
 			break;
 		}
 	} while (r != REQ_END);
 }
 
 void update() {
-	static int update_pending = 0;
 	poll(&fds, 1, 0);
-	command_t c = CMD_UPDATE;
 	if (!update_pending) {
-		update_pending = 1;
+		command_t c = CMD_UPDATE;
 		write(sfd, &c, sizeof(c));
+		update_pending = 1;
 	}
-	if(fds.revents & POLLIN) {
+	if (fds.revents & POLLIN) {
 		exec_subcmd_stream();
 		update_pending = 0;
 	}
 }
 
 void update_state() {
-	poll(&fds, 1, 0);
-	if(fds.revents & POLLOUT) {
-		command_t c = CMD_UPDATE_STATE;
-		write(sfd, &c, sizeof(c));
-		write(sfd, &my_state, sizeof(my_state));
-		write(sfd, my_state.bag, sizeof(item_t) * my_state.bag_size);
-		write(sfd, my_state.depth_buffer, sizeof(float) * my_state.rays);
-		write(sfd, my_state.obj_attr_buffer, sizeof(int) * my_state.rays);
-	}
+	if (update_pending)
+		return;
+	command_t c = CMD_UPDATE_STATE;
+	write(sfd, &c, sizeof(c));
+	write(sfd, &my_state, sizeof(my_state));
+	write(sfd, my_state.bag, sizeof(item_t) * my_state.bag_size);
+	write(sfd, my_state.depth_buffer, sizeof(float) * my_state.rays);
+	write(sfd, my_state.obj_attr_buffer, sizeof(int) * my_state.rays);
 }
 
-void destroy() {	
-	poll(&fds, 1, 0);
-	if(fds.revents & POLLOUT && fds.revents & POLLIN) {
-		command_t c = CMD_DESTROY;
-		write(sfd, &c, sizeof(c));
-		exec_subcmd_stream();
-	}
+void destroy() {
+	if (update_pending)
+		return;
+	command_t c = CMD_DESTROY;
+	write(sfd, &c, sizeof(c));
+	//poll(&fds[0], 1, 0);
+	exec_subcmd_stream();
 	shutdown(sfd, SHUT_RDWR);
 	close(sfd);
-}
-
-void item_collected(item_t i) {
-	command_t c = CMD_COLLECT;
-	write(sfd, &c, sizeof(c));
-	write(sfd, &i, sizeof(i));
-	exec_subcmd_stream();
-}
-
-void collision(coll_t i) {
-	poll(&fds, 1, 0);
-	if(fds.revents & POLLOUT && fds.revents & POLLIN) {
-		command_t c = CMD_COLLISION;
-		write(sfd, &c, sizeof(c));
-		write(sfd, &i, sizeof(i));
-		exec_subcmd_stream();
-	}
 }

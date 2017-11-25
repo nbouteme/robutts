@@ -27,22 +27,8 @@ int make_socket_process(int s, process_t *ret, char *cmd) {
 	return 1;
 }
 
-void child_died(int s) {
-	(void)s;
-	wait(0);
-	exit(0);
-}
-
 int main(int argc, char *argv[argc])
 {
-	struct sigaction s;
-	sigset_t ss;
-	sigemptyset(&ss);
-	s.sa_handler = child_died;
-	s.sa_mask = ss;
-	s.sa_flags = 0;
-	sigaction(SIGCHLD, &s, 0);
-
 	int sfd = socket(AF_INET, SOCK_STREAM, 0);
 	struct in_addr sin_addr;
 	inet_aton(argv[1], &sin_addr);
@@ -56,6 +42,6 @@ int main(int argc, char *argv[argc])
 	int client_sock = accept(sfd, (void*)&addr, &client_addr_size);
 
 	make_socket_process(client_sock, &subbot, argv[3]);
-	pause();
+	wait(0);
     return 0;
 }
