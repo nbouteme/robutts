@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <robutts.h>
+#include <process.h>
 #include <poll.h>
 #include <signal.h>
 #include <sys/wait.h>
