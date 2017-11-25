@@ -91,7 +91,6 @@ ADD_EXECUTABLE(human_bot
 )
 
 TARGET_LINK_LIBRARIES(human_bot
-  glfw
   ${GL_LIBRARIES}
   glut
   m
@@ -118,7 +117,6 @@ ADD_EXECUTABLE(heavy_bot
 )
 
 TARGET_LINK_LIBRARIES(heavy_bot
-  glfw
   ${GL_LIBRARIES}
   glut
   m
@@ -146,7 +144,6 @@ ADD_EXECUTABLE(visualizer
 )
 
 TARGET_LINK_LIBRARIES(visualizer
-  glfw
   ${GL_LIBRARIES}
   glut
   m
@@ -165,7 +162,6 @@ ADD_EXECUTABLE(switch
 )
 
 TARGET_LINK_LIBRARIES(switch
-  glfw
   ${GL_LIBRARIES}
   m
   glut
