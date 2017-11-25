@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <robutts.h>
-#include <GLFW/glfw3.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
