@@ -23,7 +23,7 @@ APPEND(ASSETSFILESO .o ${ASSETSFILES})
 FOREACH(SFX IN LISTS ASSETSFILES)
   ADD_CUSTOM_COMMAND(
 	OUTPUT ${SFX}.o
-	COMMAND mkdir -p assets
+	COMMAND mkdir -p assets/exp
 	COMMAND gcc '-DFILE="${PROJECT_SOURCE_DIR}/${SFX}"' '-DNAME="${SFX}"' -c ../../src/res.S -o ${SFX}.o
 	DEPENDS ../${SFX} res.S
 	)
