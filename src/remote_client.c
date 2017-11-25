@@ -59,12 +59,13 @@ void update() {
 	static int update_pending = 0;
 	poll(&fds, 1, 0);
 	command_t c = CMD_UPDATE;
-	if (!update_pending)
-		write(sfd, &c, sizeof(c));
-	if(fds.revents & POLLIN) {
-		poll(&fds, 1, -1);
-		exec_subcmd_stream();
+	if (!update_pending) {
 		update_pending = 1;
+		write(sfd, &c, sizeof(c));
+	}
+	if(fds.revents & POLLIN) {
+		exec_subcmd_stream();
+		update_pending = 0;
 	}
 }
 
