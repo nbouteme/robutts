@@ -21,12 +21,14 @@ int intersect_ray_circle(ray_t ra, vec2_t pos, float r, float *d) {
 		t1 = t2;
 		t2 = t;
 	}
-	if (t1 < -r) {
-		if (t2 < -r)
+	if (t1 < 0) {
+		if (t2 < 0)
 			return (0);
+		float t = t1;
 		t1 = t2;
+		t2 = t;
 	}
-	*d = t1;
+	*d = fminf(t1, t2);
 	return (1);
 }
 
@@ -51,7 +53,7 @@ intersect_data_t raycast_scene(ray_t r, int self) {
 		float f;
 		float rd = 8.0f;
 		if (game_state->items[i].type == ITEM_EXPLOSION)
-			rd = 31.0f;
+			rd = 48.0f;
 		if (!intersect_ray_circle(r, game_state->items[i].pos, rd, &f))
 			continue;
 		if (f >= ret.depth)
