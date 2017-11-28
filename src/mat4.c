@@ -13,14 +13,16 @@ mat4_t mat4_identity() {
 }
 
 vec4_t	mat4_transform4(mat4_t m, vec4_t a) {
-	vec4_t		ret;
+	int i, j;
+	float *f;
+	float *g;
+	vec4_t ret;
 
 	memset(&ret, 0, sizeof(ret));
-
-	float *f = &ret.x;
-	float *g = &a.x;
-	for (int i = 0; i < 4; ++i)
-		for (int j = 0; j < 4; ++j)
+	f = &ret.x;
+	g = &a.x;
+	for (i = 0; i < 4; ++i)
+		for (j = 0; j < 4; ++j)
 			f[i] += m.v[i][j] * g[j];
 	return (ret);
 }
@@ -60,12 +62,13 @@ mat4_t	mat4_scale(vec3_t f) {
 }
 
 mat4_t	mat4_mult(mat4_t a, mat4_t b) {
+	int i, j, k;
 	mat4_t	c;
 
 	memset(&c, 0, sizeof(c));
-	for (int i = 0; i < 4; ++i)
-		for (int k = 0; k < 4; ++k)
-			for (int j = 0; j < 4; ++j)
+	for (i = 0; i < 4; ++i)
+		for (k = 0; k < 4; ++k)
+			for (j = 0; j < 4; ++j)
 				c.v[i][j] += a.v[i][k] * b.v[k][j];
 	return (c);
 }
@@ -87,8 +90,6 @@ mat4_t	mat4_rotation(vec3_t u, float t)
 			{0.0f, 0.0f, 0.0f, 1.0f}
 	}};
 }
-
-
 
 mat4_t mat4_ortho(float gauche, float droite, float bas, float haut, float near, float far) {
 	return (mat4_t) {{

@@ -35,7 +35,7 @@ void spawn_item(pitem_t item) {
 void spawn_rand_item() {
 	game_state_t *gs = get_game_state();
 	vec2_t pos = gs->ispawns[rand() % gs->nispawns];
-	item_t type = rand() % 3; // Si ton objet doit pouvoir etre spawner, incrementer le 3
+	item_t type = 2;//rand() % 3; // Si ton objet doit pouvoir etre spawner, incrementer le 3
 	spawn_item((pitem_t) {
 			pos, type, 0
 	});
@@ -54,31 +54,30 @@ void remove_item(game_state_t *gs, pitem_t *item) {
 }
 
 void score_item(pitem_t *self, robot_t *r) {
+	game_state_t *gs = get_game_state();
 	++r->state.score;
 	printf("%s a maintenant %d points\n", r->prop.name, r->state.score);
-	game_state_t *gs = get_game_state();
 	play_wav_async(gs->sound_player, gs->item_pick);
 	remove_item(gs, self);
 }
 
 void life_item(pitem_t *self, robot_t *r) {
+	game_state_t *gs = get_game_state();
 	r->state.life += 20.0f;
 	printf("%s a maintenant %.1f points de vie\n", r->prop.name, r->state.life);
-	game_state_t *gs = get_game_state();
 	play_wav_async(gs->sound_player, gs->item_pick);
 	remove_item(gs, self);
 }
 
 void bomb_item(pitem_t *self, robot_t *r) {
+	game_state_t *gs = get_game_state();
 	if (self->user_ptr) {
 		bag_remove(r, self);
-		game_state_t *gs = get_game_state();
 		play_wav_async(gs->sound_player, gs->bomb_plant);
 		bag_add(r, &(pitem_t){r->priv.pos, ITEM_BOMB_ACT, 0});
 		return;
 	}
 	bag_add(r, &(pitem_t){(vec2_t){0, 0}, ITEM_BOMB, r});
-	game_state_t *gs = get_game_state();
 	play_wav_async(gs->sound_player, gs->item_pick);
 	remove_item(gs, self);
 }
@@ -95,8 +94,8 @@ static void nothing() {
 
 void init_explosion(pitem_t *self) {
 	expl_state_t *est = malloc(sizeof(expl_state_t));
-
 	game_state_t *gs = get_game_state();
+
 	play_wav_async(gs->sound_player, gs->explosion);
 	est->frame = 0;
 	est->energy = 100.0f;

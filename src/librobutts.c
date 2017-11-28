@@ -40,13 +40,13 @@ int use_item(int idx) {
 int main(int argc, char *argv[argc])
 {
 	command_t cmd;
-	memset(&my_state, 0, sizeof(my_state));
+	item_t t;
+	coll_t c;
+	request_t r;
+	static int in = 0;
 
+	memset(&my_state, 0, sizeof(my_state));
 	while (exact_read(0, &cmd, sizeof(cmd))) {
-		item_t t;
-		coll_t c;
-		request_t r;
-		static int in = 0;
 		switch(cmd) {
 		case CMD_INIT:
 			if (in)

@@ -81,9 +81,10 @@ void collision_with_robot(robot_t *self, robot_t *other) {
 
 int init_robot(robot_t *c, vec2_t position) {
 	int fail = 0;
-
-	can_jump = 1;
+	bitmap_t nametex;
+	char short_name[12] = {0};
 	int n = sigsetjmp(jb, 1);
+	can_jump = 1;
 	if (n) {
 		alarm(0);
 		return 0;
@@ -106,8 +107,6 @@ int init_robot(robot_t *c, vec2_t position) {
 	c->state.obj_attr_buffer = calloc(sizeof(float), c->state.rays);
 	c->priv.obj_idx_buffer = calloc(sizeof(collarg_t), c->state.rays);
 
-	bitmap_t nametex;
-	char short_name[12] = {0};
 	memcpy(short_name, c->prop.name, 11);
 	nametex.buff = make_string_bitmap(get_game_state()->nimbus,
 									  short_name,

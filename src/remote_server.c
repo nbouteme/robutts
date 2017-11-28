@@ -29,18 +29,20 @@ int make_socket_process(int s, process_t *ret, char *cmd) {
 
 int main(int argc, char *argv[argc])
 {
-	int sfd = socket(AF_INET, SOCK_STREAM, 0);
+	int sfd;
 	struct in_addr sin_addr;
-	inet_aton(argv[1], &sin_addr);
 	struct sockaddr_in addr;
+	socklen_t client_addr_size = sizeof(addr);
+	int client_sock;
+
+	sfd = socket(AF_INET, SOCK_STREAM, 0);
+	inet_aton(argv[1], &sin_addr);
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(atoi(argv[2]));
 	addr.sin_addr = sin_addr;
 	bind(sfd, (void*)&addr, sizeof(addr));
 	listen(sfd, 2);
-	socklen_t client_addr_size = sizeof(addr);
-	int client_sock = accept(sfd, (void*)&addr, &client_addr_size);
-
+	client_sock = accept(sfd, (void*)&addr, &client_addr_size);
 	make_socket_process(client_sock, &subbot, argv[3]);
 	wait(0);
     return 0;

@@ -78,16 +78,16 @@ static wav_t *readwav(void *fdata) {
 }
 
 static void get_spec(wav_t *wav, pa_sample_spec *pss, pa_channel_map *map) {
+	static const pa_channel_position_t channels[] = {PA_CHANNEL_POSITION_MONO,
+													 PA_CHANNEL_POSITION_FRONT_LEFT,
+													 PA_CHANNEL_POSITION_FRONT_RIGHT};
+
 	pss->format = PA_SAMPLE_S16LE;
 	pss->rate = wav->fmt_chunk->SampleRate;
 	pss->channels = wav->fmt_chunk->NumChannels;
 	map->channels = wav->fmt_chunk->NumChannels;
-	pa_channel_position_t channels[] = {PA_CHANNEL_POSITION_MONO,
-										PA_CHANNEL_POSITION_FRONT_LEFT,
-										PA_CHANNEL_POSITION_FRONT_RIGHT};
 	memcpy(map->map, channels + map->channels - 1, sizeof(pa_channel_position_t) * map->channels);
 }
-
 
 static void stream_state_callback(pa_stream *s, void *userdata) {
 	int *r = userdata;
@@ -138,9 +138,7 @@ audio_ctx *make_audio_player() {
 static void write_data(pa_stream *stream, size_t n, void *userptr) {
 	void *ssbuffer;
 	size_t available;
-
 	wav_write_wrap_t *data = userptr;
-
 	size_t left = data->file->data_chunk->Subchunk2Size - data->offset;
 	do {
 		available = n;
@@ -161,19 +159,23 @@ static void write_data(pa_stream *stream, size_t n, void *userptr) {
 }
 
 wave_ctx *load_wav_data(audio_ctx *ap, u8 *data, u32 size) {
-	(void)size;
 	static int sample_number = 0;
+	wave_ctx *wav;
+	wav_t *f;
+	wav_write_wrap_t *wrap;
+	pa_sample_spec pss;
+	pa_channel_map map;
+
+	(void)size;
 	if (!ap)
 		return 0;
 	sample_number++;
-	wave_ctx *wav = malloc(sizeof(*wav));
+	wav = malloc(sizeof(*wav));
 	wav->ctx = ap;
 	asprintf(&wav->sample_name, "robutt_sample_%d", sample_number);
-	wav_t *f = readwav(data);
-	wav_write_wrap_t *wrap = calloc(1, sizeof(*wrap));
+	f = readwav(data);
+	wrap = calloc(1, sizeof(*wrap));
 	wrap->file = f;
-	pa_sample_spec pss;
-	pa_channel_map map;
 	get_spec(f, &pss, &map);
 
 	int ready = 0;

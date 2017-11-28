@@ -4,18 +4,21 @@
 
 int load_shader(const char *filename, int type) {
 	unsigned s;
+	const char *f;
+	char *log;
+	int success = 1;
+	int size;
 
 	s = glCreateShader(type);
-	const char *f = readfile(filename, 0);
+	f = readfile(filename, 0);
 	glShaderSource(s, 1, &f, NULL);
 	glCompileShader(s);
-	int success = 1;
+	
 	glGetShaderiv(s, GL_COMPILE_STATUS, &success);
 	if (!success) {
-		int size;
 		glGetShaderiv(s, GL_INFO_LOG_LENGTH, &size);
 		assert(size != 0);
-		char *log = calloc(1, size);
+		log = calloc(1, size);
 		glGetShaderInfoLog(s, size, 0, log);
 		fputs(log, stderr);
 		abort();
@@ -27,6 +30,7 @@ int load_shader(const char *filename, int type) {
 int make_shader(unsigned v, unsigned f) {
 	unsigned int s;
 	int success;
+	char *log;
 
 	s = glCreateProgram();
 	glAttachShader(s, v);
@@ -35,7 +39,7 @@ int make_shader(unsigned v, unsigned f) {
 	glGetProgramiv(s, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		char *log = calloc(1, 512);
+		log = calloc(1, 512);
 		glGetProgramInfoLog(s, 512, NULL, log);
 		fputs(log, stderr);
 	}

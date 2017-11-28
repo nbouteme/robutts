@@ -52,6 +52,8 @@ void bf_run(bf_interpreter_t *self, command_t cmd, int arg) {
 	int dp = self->dp = 0;
 	char *ram = self->ram;
 	char *rom = self->rom;
+	int s;
+
 	memset(ram, 0, 5);
 	ram[0] = cmd >> 24;
 	ram[1] = arg;
@@ -81,7 +83,7 @@ void bf_run(bf_interpreter_t *self, command_t cmd, int arg) {
 			break;
 		case '[':
 			if (!ram[dp]) {
-				int s = 1;
+				s = 1;
 				while (s) {
 					++ip;
 					if (rom[ip] == '[')
@@ -93,7 +95,7 @@ void bf_run(bf_interpreter_t *self, command_t cmd, int arg) {
 			break;
 		case ']':
 			if (ram[dp]) {
-				int s = 1;
+				s = 1;
 				while (s) {
 					--ip;
 					if (rom[ip] == ']')
@@ -111,10 +113,13 @@ void bf_run(bf_interpreter_t *self, command_t cmd, int arg) {
 }
 
 void init(int argc, char *argv[]) {
+	char *d;
+	char *prop;
+
 	(void)argc;
 	prog.rom = readfile(argv[1], 0);
-	char *d = prog.ram = calloc(8, 1024 * 1024);
-	char *prop = d + 5;
+	d = prog.ram = calloc(8, 1024 * 1024);
+	prop = d + 5;
 
 	//int propsize = 39
 	prop[0] = my_robot.angular_power * 5;

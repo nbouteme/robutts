@@ -62,6 +62,10 @@ void *make_string_bitmap(age_font_t *font, char *str, int *w, int *h) {
 	int cheight = 0;
 	int height = 0;
 	int first = 0;
+	age_symbol_t *sym;
+	void *m;
+	int x;
+	int y;
 	while (*s) {
 		if (*s == '\n') {
 			++s;
@@ -70,7 +74,7 @@ void *make_string_bitmap(age_font_t *font, char *str, int *w, int *h) {
 			cwidth = 0;
 			continue;
 		}
-		age_symbol_t *sym = get_symbol(font->desc, *s);
+		sym = get_symbol(font->desc, *s);
 		if (sym) {
 			if (first)
 				if (sym->xoffset < 0)
@@ -86,9 +90,10 @@ void *make_string_bitmap(age_font_t *font, char *str, int *w, int *h) {
 	*w = width;
 	*h = height;
 
-	void *m = calloc(sizeof(unsigned), width * height);
+	m = calloc(sizeof(unsigned), width * height);
 	s = str;
-	int x = 0, y = 0;
+	x = 0;
+	y = 0;
 	while (*s) {
 		if (*s == '\n') {
 			++s;
@@ -96,7 +101,7 @@ void *make_string_bitmap(age_font_t *font, char *str, int *w, int *h) {
 			y += font->desc->height;
 			continue;
 		}
-		age_symbol_t *sym = get_symbol(font->desc, *s);
+		sym = get_symbol(font->desc, *s);
 		blit_char(m, font, sym, x, y, width);
 		if (sym)
 			x += sym->advance;
@@ -110,14 +115,15 @@ static void blit_char(unsigned *buffer,
 			   age_font_t *file,
 			   age_symbol_t *sym,
 			   int x, int y, int w) {
+	int i, j, dy, dx, sy, sx;
 	y += sym->yoffset;
 	x += sym->xoffset;
-	for (int i = 0; i < sym->bottom - sym->top; ++i) {
-		for (int j = 0; j < sym->right - sym->left; ++j) {
-			int dy = y + i;
-			int dx = x + j;
-			int sy = sym->top + i;
-			int sx = sym->left + j;
+	for (i = 0; i < sym->bottom - sym->top; ++i) {
+		for (j = 0; j < sym->right - sym->left; ++j) {
+			dy = y + i;
+			dx = x + j;
+			sy = sym->top + i;
+			sx = sym->left + j;
 			buffer[dy * w + dx] = file->bitmap.buff[sy * file->bitmap.width + sx];
 		}
 	}

@@ -36,7 +36,7 @@ int load_tga(bitmap_t *self, const char *name) {
 	unsigned s;
 	char *f = readfile(name, &s);
 	tga_header *tga = (void*)f;
-
+	u64 sb;
 	int succ = 0;
 	if ((tga->id_length == 0) &&
 		(tga->color_map_type == 0) &&
@@ -46,7 +46,7 @@ int load_tga(bitmap_t *self, const char *name) {
 
 		self->width = tga->image.width;
 		self->height = tga->image.height;
-		u64 sb = (tga->image.bpp >> 3) * self->width * self->height;
+		sb = (tga->image.bpp >> 3) * self->width * self->height;
 		self->buff = malloc(sb);
 		memcpy(self->buff, f + sizeof(tga_header), sb);
 		succ = 1;

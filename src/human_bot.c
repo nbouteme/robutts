@@ -11,6 +11,10 @@ robot_properties my_robot = {
 
 int up, right, left, down, use;
 
+int shader;
+unsigned vao;
+int du, cu;
+
 /*
   La gestion des touches de glut est maladroite
  */
@@ -65,10 +69,6 @@ static void skeyup_callback(int key, int x, int y)
 	}
 }
 
-int shader;
-unsigned vao;
-int du, cu;
-
 void display_sensors_state() {
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -87,9 +87,20 @@ void display_sensors_state() {
 }
 
 void init(int argc, char *argv[]) {
+	static int already = 0;
+	unsigned vbo;
+    float *vertices;
+	float adelta;
+	vec2_t c;
+	vec2_t p;
+	int i;
+	int v;
+	int f;
+	int proju;
+	mat4_t proj;
+
 	(void)argc;
 	(void)argv;
-	static int already = 0;
 	if (already)
 		return;
 	already = 1;
@@ -106,12 +117,11 @@ void init(int argc, char *argv[]) {
 	glutSpecialUpFunc(skeyup_callback);
 	glInit();
 
-	unsigned vbo;
-    float *vertices = calloc(sizeof(float) * 4, 64);
-	float adelta = 2 * M_PI / 64.0;
-	vec2_t c = {256, 256};
-	for(int i = 0; i < 64; ++i) {
-		vec2_t p = vec2_rot(vec2_muls(vec2_up(), 64), adelta * i);
+	vertices = calloc(sizeof(float) * 4, 64);
+	adelta = 2 * M_PI / 64.0;
+	c = (vec2_t){256, 256};
+	for(i = 0; i < 64; ++i) {
+		p = vec2_rot(vec2_muls(vec2_up(), 64), adelta * i);
 		p = vec2_add(p, c);
 		vertices[4 * i] = p.x;
 		vertices[4 * i + 1] = p.y;
@@ -132,16 +142,16 @@ void init(int argc, char *argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 	
-	int v = load_shader("assets/v_rvisu.glsl", GL_VERTEX_SHADER);
-	int f = load_shader("assets/f_rvisu.glsl", GL_FRAGMENT_SHADER);
+	v = load_shader("assets/v_rvisu.glsl", GL_VERTEX_SHADER);
+	f = load_shader("assets/f_rvisu.glsl", GL_FRAGMENT_SHADER);
 	shader = make_shader(v, f);
 	glUseProgram(shader);
 
-	int proju = glGetUniformLocation(shader, "proj");
+	proju = glGetUniformLocation(shader, "proj");
 	cu = glGetUniformLocation(shader, "colors");
 	du = glGetUniformLocation(shader, "depth");
 	
-	mat4_t proj = mat4_ortho(0.0f, 4 * 128.0f, 4 * 128.0f, 0.0f, -1.0f, 1.0f);
+	proj = mat4_ortho(0.0f, 4 * 128.0f, 4 * 128.0f, 0.0f, -1.0f, 1.0f);
 	glUniformMatrix4fv(proju, 1, GL_FALSE, &proj.s[0].x);
 }
 
@@ -157,11 +167,4 @@ void update() {
 		use = 0;
 		use_item(0);
 	}
-}
-
-void destroy() {	
-}
-
-void item_collected(item_t i) {
-	(void)i;
 }

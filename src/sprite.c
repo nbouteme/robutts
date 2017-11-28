@@ -6,9 +6,8 @@ sprite_renderer_t *make_sprite_renderer() {
 	sprite_renderer_t *self = malloc(sizeof(*self));
 	int v = load_shader("assets/vshader.glsl", GL_VERTEX_SHADER);
 	int f = load_shader("assets/fshader.glsl", GL_FRAGMENT_SHADER);
-	self->shader = make_shader(v, f);
-	glUseProgram(self->shader);
 	unsigned vbo;
+	int u;
     float vertices[] = { 
         0.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 0.0f,
@@ -18,6 +17,8 @@ sprite_renderer_t *make_sprite_renderer() {
         1.0f, 1.0f, 1.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 0.0f
     };
+	self->shader = make_shader(v, f);
+	glUseProgram(self->shader);
 
     glGenVertexArrays(1, &self->vao);
     glGenBuffers(1, &vbo);
@@ -35,7 +36,7 @@ sprite_renderer_t *make_sprite_renderer() {
 	self->model_u = glGetUniformLocation(self->shader, "model");
 	self->color_u = glGetUniformLocation(self->shader, "color");
 
-	int u = glGetUniformLocation(self->shader, "tex");
+	u = glGetUniformLocation(self->shader, "tex");
 	glUniform1i(u, 0);
 	
 	self->proj = mat4_ortho(0.0f, 1280.0f, 720.0f, 0.0f, -1.0f, 1.0f);
@@ -46,10 +47,13 @@ sprite_renderer_t *make_sprite_renderer() {
 }
 
 void draw_sprite(sprite_renderer_t *self, sprite_t sprite) {
+	mat4_t model;
+	float color[3];
+
 	glUseProgram(self->shader);
 
 	// Pas super optimal, surtout dans le cas d'objet statiques où le model change jamais 
-	mat4_t model = mat4_identity();
+	model = mat4_identity();
 	model = mat4_mult(model, mat4_translate((vec3_t){sprite.pos.x, sprite.pos.y, 0})); // déplacé de pos
 	model = mat4_mult(model, mat4_translate((vec3_t){sprite.dims.x * 0.5f, sprite.dims.y  * 0.5f, 0})); // centré
 	model = mat4_mult(model, mat4_rotation((vec3_t){0, 0, 1}, sprite.angle));
@@ -57,7 +61,6 @@ void draw_sprite(sprite_renderer_t *self, sprite_t sprite) {
 	model = mat4_mult(model, mat4_scale((vec3_t){sprite.dims.x, sprite.dims.y, 1.0f})); // agrandis
 	glUniformMatrix4fv(self->model_u, 1, GL_TRUE, &model.s[0].x);
 
-	float color[3];
 	color[0] = (float)(sprite.color >> 16 & 0xFF) / 255.0f;
 	color[1] = (float)(sprite.color >>  8 & 0xFF) / 255.0f;
 	color[2] = (float)(sprite.color >>  0 & 0xFF) / 255.0f;

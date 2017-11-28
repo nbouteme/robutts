@@ -1,4 +1,5 @@
 #include "librobutts.h"
+#include <stdio.h>
 
 robot_properties my_robot = {
 	2.5, 1.5, 1, 0x00FFFF, "avance"

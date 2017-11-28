@@ -16,6 +16,7 @@ void checkalError() {
 	ALenum e = alGetError();
 	if (e) {
 		puts(alGetString(e));
+		abort();
 	}
 }
 
@@ -23,6 +24,7 @@ void checkalcError(void *dev) {
 	ALenum e = alcGetError(dev);
 	if (e) {
 		puts(alcGetString(dev, e));
+		abort();
 	}
 }
 
@@ -30,14 +32,18 @@ void checkalutError() {
 	ALenum e = alutGetError();
 	if (e != ALUT_ERROR_NO_ERROR) {
 		puts(alutGetErrorString(e));
+		abort();
 	}
 }
 
 audio_ctx *make_audio_player() {
+	audio_ctx *ctx;
+	const char *defaultDeviceName;
+
 	alutInitWithoutContext(0, 0);
 	checkalutError();
-	audio_ctx *ctx = malloc(sizeof(*ctx));
-	const char *defaultDeviceName = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
+	ctx = malloc(sizeof(*ctx));
+	defaultDeviceName = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
 	checkalcError(ctx->device);
 	ctx->device = alcOpenDevice(defaultDeviceName);
 	checkalcError(ctx->device);

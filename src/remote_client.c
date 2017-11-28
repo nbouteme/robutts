@@ -19,6 +19,7 @@ struct pollfd fds;
 void init(int argc, char *argv[]) {
 	struct in_addr sin_addr;
 	struct sockaddr_in addr;
+	command_t cmd = CMD_INIT;
 
 	(void)argc;
 	sfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -30,7 +31,6 @@ void init(int argc, char *argv[]) {
 	connect(sfd, (void*)&addr, sizeof(addr));
 	fds = (struct pollfd){sfd, POLLIN | POLLOUT, 0};
 
-	command_t cmd = CMD_INIT;
 	write(sfd, &cmd, sizeof(cmd));
 	exact_read(sfd, &my_robot, sizeof(my_robot));
 }
@@ -59,9 +59,9 @@ void exec_subcmd_stream() {
 }
 
 void update() {
+	command_t c = CMD_UPDATE;
 	poll(&fds, 1, 0);
 	if (!update_pending) {
-		command_t c = CMD_UPDATE;
 		write(sfd, &c, sizeof(c));
 		update_pending = 1;
 	}
@@ -72,9 +72,9 @@ void update() {
 }
 
 void update_state() {
+	command_t c = CMD_UPDATE_STATE;
 	if (update_pending)
 		return;
-	command_t c = CMD_UPDATE_STATE;
 	write(sfd, &c, sizeof(c));
 	write(sfd, &my_state, sizeof(my_state));
 	write(sfd, my_state.bag, sizeof(item_t) * my_state.bag_size);
@@ -83,9 +83,9 @@ void update_state() {
 }
 
 void destroy() {
+	command_t c = CMD_DESTROY;
 	if (update_pending)
 		return;
-	command_t c = CMD_DESTROY;
 	write(sfd, &c, sizeof(c));
 	//poll(&fds[0], 1, 0);
 	exec_subcmd_stream();

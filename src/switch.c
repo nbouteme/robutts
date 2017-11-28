@@ -33,13 +33,15 @@ void display_sensors_state() {
 }
 
 void init(int argc, char *argv[]) {
+	static int already = 0;
+	command_t cmd = CMD_INIT;
+	int i;
+
 	(void)argc;
 	(void)argv;
-	static int already = 0;
 	if (already)
 		return;
 	already = 1;
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STENCIL);
 	glutInitContextVersion(3, 3);
@@ -49,8 +51,7 @@ void init(int argc, char *argv[]) {
 	glutDisplayFunc(display_sensors_state);
 	glutKeyboardFunc(key_callback);
 	glInit();
-	command_t cmd = CMD_INIT;
-	for (int i = 0; i < nbots; ++i) {
+	for (i = 0; i < nbots; ++i) {
 		make_linked_process(&subbot[i], argv[i + 1]);
 		write(subbot[i].stdin, &cmd, sizeof(cmd));
 		exact_read(subbot[i].stdout, &my_robot, sizeof(my_robot)); // ignoré

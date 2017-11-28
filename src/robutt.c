@@ -13,6 +13,9 @@
 
 static const int g_60fps = ((1.0 / 60) * 1000000000);
 
+sigjmp_buf jb;
+int can_jump = 0;
+
 game_state_t *get_game_state() {
 	static game_state_t *s = 0;
 	if (!s) {
@@ -24,6 +27,7 @@ game_state_t *get_game_state() {
 void display_game_state() {
 	game_state_t *gs;
 	sprite_t s;
+	int i;
 
 	gs = get_game_state();
 	glClearColor(0, 0, 0, 0);
@@ -34,12 +38,12 @@ void display_game_state() {
 	draw_sprite(gs->renderer, s);
 
 	// ... les robots...
-	for (int i = 0; i < gs->n_robots; ++i) {
+	for (i = 0; i < gs->n_robots; ++i) {
 		draw_robot(&gs->robots[i], gs->renderer);
 	}
 
 	// ... et les objets
-	for (int i = 0; i < gs->n_items; ++i) {
+	for (i = 0; i < gs->n_items; ++i) {
 		collectable_item_vtable[gs->items[i].type].draw(&gs->items[i], gs->renderer);
 	}
 
@@ -55,9 +59,9 @@ void destroy_renderer(sprite_renderer_t *sr) {
 
 void cleanup() {
 	game_state_t *gs = get_game_state();
-
 	wave_ctx **f = &gs->item_pick;
 	wave_ctx **l = &gs->victory;
+
 	while (f <= l)
 		destroy_audio_sample(*f++);
 	destroy_audio_player(gs->sound_player);
@@ -91,9 +95,6 @@ void kill_robot(robot_t *c, death_reason_t reason) {
 	c->dead = reason;
 }
 
-sigjmp_buf jb;
-int can_jump = 0;
-
 void kill_timeout(int s) {
 	(void)s;
 	if (!can_jump)
@@ -106,12 +107,13 @@ void kill_timeout(int s) {
 }
 
 void exec_cmd_stream(robot_t *c) {
-	ualarm(50000, 0);
-
 	request_t r;
+	int idx;
+	int i;
+	pitem_t *item;
+
+	ualarm(50000, 0);
 	do {
-		int idx;
-		int i;
 		exact_read(c->process.stdout, &r, sizeof(r));
 		switch (r) {
 		case REQ_UPDATE:
@@ -130,7 +132,7 @@ void exec_cmd_stream(robot_t *c) {
 			if (write(c->process.stdin, &idx, sizeof(idx)) == -1)
 				perror("server write failed");
 			if (idx) {
-				pitem_t *item = &c->priv.bag_buffer[i];
+				item = &c->priv.bag_buffer[i];
 				collectable_item_vtable[item->type].activate(item, c);
 			}
 			break;
@@ -157,9 +159,11 @@ void exec_cmd(robot_t *c) {
 
 void end_game(robot_t *c) {
 	game_state_t *gs = get_game_state();
+	int i;
+
 	if (gs->finished)
 		return;
-	for (int i = 0; i < gs->n_robots; ++i) {
+	for (i = 0; i < gs->n_robots; ++i) {
 		if (c != &gs->robots[i])
 			kill_robot(&gs->robots[i], D_LOST);
 	}
@@ -169,11 +173,12 @@ void end_game(robot_t *c) {
 
 void coalesce_robots() {
 	game_state_t *gs = get_game_state();
-
 	int i = 0;
+	robot_t * c;
+
 	while (i < gs->n_robots) {
 		if (gs->robots[i].dead) {
-			robot_t *c = &gs->robots[i];
+			c = &gs->robots[i];
 			free(c->state.bag);
 			free(c->state.depth_buffer);
 			free(c->state.obj_attr_buffer);
@@ -198,10 +203,22 @@ void load_ressources(game_state_t *gs, char *map) {
 		"assets/i_bomb.tga"
 	};
 	int n_textures = sizeof(textures) / sizeof(textures[0]);
+	const char *sfx[] = {
+		"assets/item_pick.wav",
+		"assets/bomb_drop.wav",
+		"assets/explosion.wav",
+		"assets/victory.wav"
+	};
+	int nsounds = sizeof(sfx) / sizeof(sfx[0]);
+	bitmap_t btmp;
+	char fn[25];
 	bitmap_t *tex = malloc(sizeof(bitmap_t) * n_textures);
-	// map 
 	unsigned *t = &gs->background_tex;
-	for (int i = 0; i < n_textures; ++i) {
+	int i;
+	embedded_t file;
+	wave_ctx **p;
+	// map 
+	for (i = 0; i < n_textures; ++i) {
 		if (!load_tga(&tex[i], textures[i])) {
 			fprintf(stderr, "Couldn't load texture '%s'\n", textures[i]);
 			exit(1);
@@ -216,24 +233,14 @@ void load_ressources(game_state_t *gs, char *map) {
 
 	// Charge les sons
 	gs->sound_player = make_audio_player();
-	const char *sfx[] = {
-		"assets/item_pick.wav",
-		"assets/bomb_drop.wav",
-		"assets/explosion.wav",
-		"assets/victory.wav"
-	};
-	int nsounds = sizeof(sfx) / sizeof(sfx[0]);
-	wave_ctx **p = &gs->item_pick;
-	for (int i = 0; i < nsounds; ++i) {
-		embedded_t file = get_asset(sfx[i]);
+	p = &gs->item_pick;
+	for (i = 0; i < nsounds; ++i) {
+		file = get_asset(sfx[i]);
 		p[i] = load_wav_data(gs->sound_player, file.data, file.size);
 	}
 
 	// Charge l'animation d'explosion
-	for (int i = 24; i < 49; ++i) {
-		bitmap_t btmp;
-		char fn[25];
-		fn[0] = 0;
+	for (i = 24; i < 49; ++i) {
 		sprintf(fn, "assets/exp/%03d.tga", i);
 		if (!load_tga(&btmp, fn)) {
 			fprintf(stderr, "Couldn't load texture '%s'\n", fn);
@@ -254,11 +261,22 @@ static struct timespec start;
 void update_game_state() {
 	struct timespec end;
 	static int frame = 0;
+	long diff;
+	game_state_t *game_state = get_game_state();
+	robot_t *c;
+	int i, j, k, n;
+	float adelta;
+	ray_t r;
+	vec2_t my_dir;
+	intersect_data_t closest_actor, wall;
+	pitem_t *item;
+	vec2_t rot;
+	float f;
+
 	clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-	long diff = nano_diff(end, start);
+	diff = nano_diff(end, start);
 	if (diff < g_60fps)
 		return;
-	game_state_t *game_state = get_game_state();
 	if (game_state->finished) {
 		game_state->finished += diff;
 		if (game_state->finished >= 5l * 1000 * 1000 * 1000) {
@@ -273,10 +291,10 @@ void update_game_state() {
 		spawn_rand_item();
 	}
 	// game loop
-	for (int i = 0; i < game_state->n_robots; ++i) {
-		robot_t *c = &game_state->robots[i];
+	for (i = 0; i < game_state->n_robots; ++i) {
+		c = &game_state->robots[i];
 
-		int n = sigsetjmp(jb, 1);
+		n = sigsetjmp(jb, 1);
 		can_jump = 1;
 		if (n) {
 			ualarm(0, 0);
@@ -285,7 +303,7 @@ void update_game_state() {
 		if (c->dead)
 			continue;
 		exec_cmd(c);
-		vec2_t my_dir = vec2_rot(vec2_up(), -c->priv.angle);
+		my_dir = vec2_rot(vec2_up(), -c->priv.angle);
 		c->priv.linear_speed = vec2_add(c->priv.linear_speed, vec2_muls(my_dir, c->prop.linear_power / c->prop.mass * c->state.lin_eng_state));
 		c->priv.angular_speed += (c->prop.angular_power / c->prop.mass) * c->state.rot_eng_state;
 		c->priv.linear_speed = vec2_muls(c->priv.linear_speed, 0.8f / c->prop.mass);
@@ -293,49 +311,44 @@ void update_game_state() {
 		c->priv.angle += c->priv.angular_speed;
 		c->priv.pos = vec2_add(c->priv.pos, c->priv.linear_speed);
 		assert(c->priv.pos.x == c->priv.pos.x);
-		float adelta = 2 * M_PI / c->state.rays;
-		int j = i;
+		adelta = 2 * M_PI / c->state.rays;
+		j = i;
 		memset(c->state.depth_buffer, 0, sizeof(float) * 64);
-		for (int i = 0; i < c->state.rays; ++i) {
-			ray_t r;
-			r.dir = vec2_rot(my_dir, i * adelta);
+		for (k = 0; k < c->state.rays; ++k) {
+			r.dir = vec2_rot(my_dir, k * adelta);
 			r.ori = vec2_add(c->priv.pos, vec2_muls(r.dir, 32.0f));
-			intersect_data_t closest_actor = raycast_scene(r, j);
-			intersect_data_t wall;
+			closest_actor = raycast_scene(r, j);
 			if (raycast_bitmap(r, closest_actor.depth, &wall)) {
-				c->state.depth_buffer[i] = wall.depth;
-				c->state.obj_attr_buffer[i] = COLL_WALL;
+				c->state.depth_buffer[k] = wall.depth;
+				c->state.obj_attr_buffer[k] = COLL_WALL;
 			} else if (!(closest_actor.type == COLL_ROBOT && closest_actor.arg.robot_id == j)) {
-				c->state.depth_buffer[i] = closest_actor.depth;
-				c->state.obj_attr_buffer[i] = closest_actor.type;
-				c->priv.obj_idx_buffer[i] = closest_actor.arg;
+				c->state.depth_buffer[k] = closest_actor.depth;
+				c->state.obj_attr_buffer[k] = closest_actor.type;
+				c->priv.obj_idx_buffer[k] = closest_actor.arg;
 			}
 		}
 		c->priv.rc = 0;
 		c->priv.ic = 0;
-		for (int i = 0; i < c->state.rays; ++i) {
-			vec2_t r;
-			pitem_t *item;
-
-			if (c->state.depth_buffer[i] > 0.001f)
+		for (k = 0; k < c->state.rays; ++k) {
+			if (c->state.depth_buffer[k] > 0.001f)
 				continue;
-			if(c->state.obj_attr_buffer[i] != COLL_NONE) {
+			if(c->state.obj_attr_buffer[k] != COLL_NONE) {
 				send_command(c, CMD_COLLISION);
 				write(c->process.stdin, &c->state.obj_attr_buffer[i], sizeof(c->state.obj_attr_buffer[i]));
 				exec_cmd_stream(c);
 			}
-			switch(c->state.obj_attr_buffer[i]) {
+			switch(c->state.obj_attr_buffer[k]) {
 			case COLL_NONE: // 🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔🤔
 				break;
 			case COLL_WALL:
 				//c->priv.pos = opos;
-				r = vec2_rot(my_dir, i * adelta);
-				if (vec2_dot(r, c->priv.linear_speed) <= 0)
+				rot = vec2_rot(my_dir, k * adelta);
+				if (vec2_dot(rot, c->priv.linear_speed) <= 0)
 					break;
-				r = vec2_rot(my_dir, i * adelta);
-				r = vec2_sub((vec2_t) {0, 0}, r);
-				float f = sqrtf(vec2_dot(c->priv.linear_speed, c->priv.linear_speed));
-				c->priv.linear_speed = vec2_muls(r, f);
+				rot = vec2_rot(my_dir, k * adelta);
+				rot = vec2_sub((vec2_t) {0, 0}, rot);
+				f = sqrtf(vec2_dot(c->priv.linear_speed, c->priv.linear_speed));
+				c->priv.linear_speed = vec2_muls(rot, f);
 				if (f < 3)
 					f = 0;
 				c->state.life -= f;
@@ -346,11 +359,11 @@ void update_game_state() {
 				if (c->priv.ic)
 					break;
 				c->priv.ic = 1;
-				item = &game_state->items[c->priv.obj_idx_buffer[i].item_id];
+				item = &game_state->items[c->priv.obj_idx_buffer[k].item_id];
 				collectable_item_vtable[item->type].activate(item, c);
 				break;
 			case COLL_ROBOT:
-				collision_with_robot(c, &game_state->robots[c->priv.obj_idx_buffer[i].robot_id]);
+				collision_with_robot(c, &game_state->robots[c->priv.obj_idx_buffer[k].robot_id]);
 				break;
 			default: //🤔🤔🤔🤔🤔🤔🤔🤔
 				break;
@@ -361,13 +374,13 @@ void update_game_state() {
 		}
 	}
 	coalesce_robots();
-	for (int i = 0; i < game_state->n_items; ++i) {
+	for (i = 0; i < game_state->n_items; ++i) {
 		collectable_item_vtable[game_state->items[i].type].update(&game_state->items[i]);
 	}
 	if (!game_state->finished && game_state->n_robots == 1) {
 		end_game(game_state->robots);
 	}
-	for (int i = 0; i < game_state->n_robots; ++i) {
+	for (i = 0; i < game_state->n_robots; ++i) {
 		if (game_state->robots[i].state.score >= 10) {
 			end_game(&game_state->robots[i]);
 		}
@@ -385,13 +398,14 @@ void update_game_state() {
  */
 void fill_rspawns() {
 	game_state_t *gs = get_game_state();
+	int x, y;
 
 	gs->nrspawns = 0;
 	gs->nispawns = 0;
 	gs->rspawns = malloc(sizeof(vec2_t) * gs->nrspawns);
 	gs->ispawns = malloc(sizeof(vec2_t) * gs->nispawns);
-	for (int y = 0; y < 720; ++y) {
-		for (int x = 0; x < 1280; ++x) { // On regarde tout les pixels de l'image
+	for (y = 0; y < 720; ++y) {
+		for (x = 0; x < 1280; ++x) { // On regarde tout les pixels de l'image
 			if ((gs->bmp[y * 1280 + x] & 0x00FFFFFF) == 0x00FF0000) {
 				// Ajoute un spawn de robot
 				gs->rspawns = realloc(gs->rspawns, sizeof(vec2_t) * (gs->nrspawns + 1));
@@ -412,6 +426,14 @@ void fill_rspawns() {
 
 int main(int argc, char *argv[argc])
 {
+	struct sigaction s;
+	sigset_t ss;
+	game_state_t *gs;
+	robot_t *ro;
+	int all;
+	int i;
+	robot_t *c;
+
 	if (argc < 3) {
 		return 1;
 	}
@@ -421,8 +443,6 @@ int main(int argc, char *argv[argc])
 	  SIGALRM pour interompre une execution trop lente
 	  SIGPIPE pour au cas ou on fait de l'entrée/sortie sur un fils mort 
 	*/
-	struct sigaction s;
-	sigset_t ss;
 	sigemptyset(&ss);
 	s.sa_handler = kill_timeout;
 	s.sa_mask = ss;
@@ -453,7 +473,7 @@ int main(int argc, char *argv[argc])
 	glInit();
 #endif
 	// ./a.out map.bmp [bots]...
-	game_state_t *gs = get_game_state();
+	gs = get_game_state();
 	load_ressources(gs, argv[1]);
 	fill_rspawns();
 
@@ -463,10 +483,10 @@ int main(int argc, char *argv[argc])
 		exit(1);
 	}
 
-	robot_t *ro = make_robots(argc - 2, argv + 2);
-	int all = 0;
-	for (int i = 0; i < argc - 2; ++i) {
-		robot_t *c = ro + i;
+	ro = make_robots(argc - 2, argv + 2);
+	all = 0;
+	for (i = 0; i < argc - 2; ++i) {
+		c = ro + i;
 		if (!init_robot(c, gs->rspawns[all++]))
 			c->state.life = -100.0f;
 	}
