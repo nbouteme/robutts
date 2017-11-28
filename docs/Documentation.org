@@ -5,8 +5,8 @@
 #+OPTIONS: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
 #+OPTIONS: timestamp:t title:t toc:t todo:t |:t
 #+TITLE: Documentation
-#+AUTHOR: Nabil Boutemeur \\
-#+AUTHOR: Alizé Nagel
+#+AUTHOR: Nabil B\textsc{outemeur} \\
+#+AUTHOR: Alizé N\textsc{agel}
 #+EMAIL: nabil.boutemeur@gmail.com
 #+LANGUAGE: fr
 #+SELECT_TAGS: export
@@ -24,7 +24,8 @@
 #+LATEX_COMPILER: pdflatex
 #+DATE: \today
 
-
+\setlength{\parskip}{0.75em}
+\setlength\parindent{0cm}
 \widowpenalties 1 10000
 \raggedbottom
 \interlinepenalty 10000
@@ -84,8 +85,6 @@ Il existe 3 types d'objet spawnable:
   invisible. Le robot se voit alors donné un objet Détonateur qui
   permet de faire exploser la bombe à distance.
 
-\pagebreak
-
 *** Physique
 
 Un robot peut entrer en contact avec deux obstacles principaux:
@@ -137,8 +136,6 @@ machine sur le réseau, qui se contenterai de transférer les données
 écrites par le client et de les transmettre au serveur.  Aussi,
 n'importe quel exécutable peut faire office de client, quelque soit le
 language dans lequel il est écrit.
-
-\pagebreak
 
 ** Protocole
 
@@ -260,10 +257,8 @@ convert +append sequence_com.png sequence_req.png png:-
 
 \fi
 
-#+attr_latex: :width 6cm
+#+attr_latex: :width 9cm
 [[file:seq_cont.png]]
-
-\pagebreak
 
 ** Détails d'implémentation
 
@@ -290,8 +285,7 @@ même mécanisme que décrit dessus.
 Le serveur de jeu commence par régler l'interception des signaux
 SIGPIPE et SIGARLM, de régler une fonction de nettoyage qui libèrera
 la mémoire utilisée par le contexte de jeu à la sortie, d'initialiser
-glut et les fonctions OpenGL (soit avec GLEW, soit avec un chargeur
-d'extension écrit à la main, selon un flag de compilation), et
+glut et les fonctions OpenGL, et
 initialiser le contexte de jeu.
 
 L'initialisation du jeu consiste à charger des ressources, textures et
@@ -303,6 +297,20 @@ Enfin le programme lance la boucle d'évènement de glut. Comme aucune
 garantie n'est données quant à la fréquence de raffraichissement sous
 glut, la fonction de logique de jeu mesure le temps écoulé entre
 chaque appel et décide si il est temps ou non de mettre à jour l'état.
+
+*** Ressources
+
+À la compilation, toutes les ressources du dossier assets sont
+embarqués dans l'éxecutable, et lorsqu'un fichier est lu par le
+programme, il vérifie d'abord si une version existe dans le système de
+fichier relatif au répertoire courant avant de charger le fichier
+interne.
+
+De ce fait, le programme peut être executé avec le terrain par défaut "assets/back.tga"
+#+BEGIN_SRC sh
+./robutts assets/back.tga [robots]...
+#+END_SRC
+
 
 *** Textures
 
@@ -401,8 +409,7 @@ activé.
 Les bruits sont joué pour lorsqu'un robot ramasse un objet, utilise
 une bombe, une explosion se produit, ou le jeu finit.
 
-La bibliothèque utilisé est OpenAL avec ALUT, car simple et
-philosophiquement proche d'OpenGL/GLUT dans leur fonctionnement.
+La bibliothèque utilisée par défaut est Pulseaudio quand elle est disponible, sinon OpenAL.
 
 ** Joueur humain
 
@@ -423,7 +430,7 @@ robot_state my_state;
 robot_properties my_robot __attribute__ ((weak)) = {
 	1.0f,
 	1.0f,
-	10.0f,
+	3.0f,
 	0x00FF00FF,
 	"Default bot"
 };
@@ -455,3 +462,68 @@ qui permet de visuallement reconstruire l'environnement.
 
 #+attr_latex: :width 7cm
 [[file:ex.png]]
+
+** Interpréteur Brainfuck
+
+Comme language minimal, une variante du brainfuck est utilisée.  Cette
+variante n'inclue pas les instructions d'entrée sortie et ajoute une
+instruction '|', pour halter l'éxecution du programme. Le language est
+donc consitué de 7 instructions.
+
+L'interpréteur se lie au jeu comme tout autre programme, mais prends
+aussi en entrée un fichier brainfuck à éxecuter. Lorsqu'un évenement
+est envoyé par le serveur de jeu, l'interpreteur place dans des cases
+mémoires les données pertinantes de l'évenement et invoque le
+programme.
+
+** Intermédiaires
+
+En plus de joueurs humains et programmés, il existe des programmes
+intermédiaires s'appuyant sur le protocole d'échange permettant
+d'implémenter des fonctionnalités sans toucher au code du serveur de
+jeu.
+
+*** Visualisateur
+
+Ce programme prend en paramètre la commande d'un robot et se comporte
+comme ce robot, en plus d'afficher une fenêtre avec l'état des
+capteurs.
+
+#+BEGIN_SRC sh
+./robutts assets/back.tga "./visualizer ./robot1"
+#+END_SRC
+
+*** Switch
+
+Ce programme prend en paramètre la commande de deux robot et se
+comporte comme le premier robot passé. Il affiche une fenêtre qui,
+lors d'un appuis sur la touche espace, va basculer l'éxecution sur
+l'autre robot.
+
+Cela permet par exemple de coupler un robot programmé avec un humain,
+et de donner la main à un joueur humain en cours de partie.
+
+#+BEGIN_SRC sh
+./robutts assets/back.tga "./switch ./robot1 ./robot2"
+#+END_SRC
+
+*** Robot réseau
+
+Les programmes remote_client et remote_server permette de mettre un
+robot à disposition sur le réseau et de l'utiliser pour une partie sur
+une autre machine.
+
+Sur la machine qui héberge le robot, faire:
+
+#+BEGIN_SRC sh
+./remote_server [interface (0.0.0.0 en général)] [port] [./robot1]
+#+END_SRC
+
+Sur la machine qui héberge la partie, faire:
+
+#+BEGIN_SRC sh
+./robutts assets/back.tga [robots]... "./remote_client [ip] [port] [./robot1]"
+#+END_SRC
+
+Note: remote_serveur ne fait que rediriger l'entrée/sortie standard sur des
+sockets, donc il peut être utilisé pour n'importe qu'elle autre commande.

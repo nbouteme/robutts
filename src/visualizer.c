@@ -94,7 +94,7 @@ void init(int argc, char *argv[]) {
 	cu = glGetUniformLocation(shader, "colors");
 	du = glGetUniformLocation(shader, "depth");
 	
-	proj = mat4_ortho(0.0f, 4 * 128.0f, 4 * 128.0f, 0.0f, -1.0f, 1.0f);
+	proj = mat4_ortho(0.0f, 512.0f, 512.0f, 0.0f, -1.0f, 1.0f);
 	glUniformMatrix4fv(proju, 1, GL_FALSE, &proj.s[0].x);
 
 	make_linked_process(&subbot, argv[1]);
