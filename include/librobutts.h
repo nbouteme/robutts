@@ -64,7 +64,11 @@ typedef enum {
 typedef enum {
 	ITEM_POINT,		// Donne un point
 	ITEM_LIFE,		// Redonne 20 PV
-	ITEM_BOMB,		// Place une bombe cachée à la position du robot lors de l'utilisation, puis donne un activateur pour cette bombe 
+	ITEM_BOMB,		// Place une bombe cachée à la position du robot lors de l'utilisation, puis donne un activateur pour cette bombe
+	// Les objets en dessous ne peuvent être spawné
+	ITEM_BASE,
+
+	// Les objets en dessous ne peuvent pas etre directement affichés avec draw_static_item
 	ITEM_BOMB_ACT,	// Fait exploser la bombe correspondante lors de l'activation
 	ITEM_EXPLOSION, // Cause des dégât et une poussée
 } item_t;

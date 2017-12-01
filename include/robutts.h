@@ -67,7 +67,7 @@ typedef struct game_state {
 	   d'objets et en mettant les objets utilisant une image statique en
 	   premier
 	*/
-	unsigned i_new_item_tex; // +3
+	unsigned i_base_tex; // +3
 
 	// nouvel texture pour un objet statique
 	// unsigned blabla;

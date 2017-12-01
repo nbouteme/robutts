@@ -202,7 +202,8 @@ void load_ressources(game_state_t *gs, char *map) {
 		"assets/robot.tga",
 		"assets/i_score.tga",
 		"assets/i_life.tga",
-		"assets/i_bomb.tga"
+		"assets/i_bomb.tga",
+		"assets/i_base.tga"
 	};
 	int n_textures = sizeof(textures) / sizeof(textures[0]);
 	const char *sfx[] = {
@@ -469,15 +470,7 @@ int main(int argc, char *argv[argc])
 	glutDisplayFunc(display_game_state);
 	glutIdleFunc(update_game_state);
 	srand(time(0));
-	// Glew n'est pas explicitement autorisé donc désactivé par défaut
-	// On prendra donc a la place une fonction de chargement
-	// d'extensions maison qui marchera a peu pres
-#ifdef USE_GLEW
-	glewExperimental = 1;
-	glewInit();
-#else
 	glInit();
-#endif
 	// ./a.out map.bmp [bots]...
 	gs = get_game_state();
 	load_ressources(gs, argv[1]);
@@ -495,8 +488,12 @@ int main(int argc, char *argv[argc])
 		c = ro + i;
 		if (!init_robot(c, gs->rspawns[all++]))
 			c->state.life = -100.0f;
+		spawn_item((pitem_t) {
+				c->priv.pos,
+				ITEM_BASE, c
+		});
 	}
-
+	
 	gs->robots = ro;
 	gs->n_robots = argc - 2;
 	glEnable(GL_BLEND);

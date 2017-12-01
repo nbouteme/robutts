@@ -35,7 +35,7 @@ void spawn_item(pitem_t item) {
 void spawn_rand_item() {
 	game_state_t *gs = get_game_state();
 	vec2_t pos = gs->ispawns[rand() % gs->nispawns];
-	item_t type = rand() % 3; // Si ton objet doit pouvoir etre spawner, incrementer le 3
+	item_t type = rand() % 1; // Si ton objet doit pouvoir etre spawner, incrementer le 3
 	spawn_item((pitem_t) {
 			pos, type, 0
 	});
@@ -54,9 +54,8 @@ void remove_item(game_state_t *gs, pitem_t *item) {
 }
 
 void score_item(pitem_t *self, robot_t *r) {
+	bag_add(r, &(pitem_t){(vec2_t){0, 0}, ITEM_POINT, r}); //Je me le point dans le sac
 	game_state_t *gs = get_game_state();
-	++r->state.score;
-	printf("%s a maintenant %d points\n", r->prop.name, r->state.score);
 	play_wav_async(gs->sound_player, gs->item_pick);
 	remove_item(gs, self);
 }
@@ -164,6 +163,29 @@ void draw_explosion(pitem_t *self, sprite_renderer_t *sr) {
 	draw_sprite(sr, s);
 }
 
+void activate_bonus(pitem_t *self, robot_t *r) {
+	// self est un pointeur vers l'objet que
+	// le robot pointé par r a activé
+	// L'activation se fait soit par activation explicite (self est dans le sac et r a demandé à utiliser l'objet)
+	// soit par contact sur le terrain de jeu (self est alors un objet du terrain)
+	
+    int i;
+	// On arrete si ce n'est pas le bon robot qui touche la base
+	if (self->user_ptr != r)
+		return;
+
+	// On cherche un score dans le sac
+    for(i = 0; i < r->state.bag_size; i++) {
+        if(r->priv.bag_buffer[i].type == ITEM_POINT) {
+			// i est l'indice de l'objet dans le sac du robot
+            ++r->state.score; // Je met à jouer le score du joueur
+            printf("%s a maintenant %d points\n", r->prop.name, r->state.score); // on l'affiche
+			// 
+            bag_remove(r, &r->priv.bag_buffer[i]); // et on le retire de son sac
+			break;
+        }
+	}
+}
 /*
   Pour rappel de l'interface, un objet est fait de 5 fonctions
   - Initialisation
@@ -180,6 +202,7 @@ item_interface_t collectable_item_vtable[] = {
 	{nothing, nothing, score_item, draw_static_item, nothing},
 	{nothing, nothing, life_item, draw_static_item, nothing},
 	{nothing, nothing, bomb_item, draw_static_item, nothing},
+	{nothing, nothing, activate_bonus, draw_static_item, nothing}, 
 	{nothing, nothing, bomb_act_item, nothing, nothing},
 	{init_explosion, update_explosion_state, explosion_item, draw_explosion, free_explosion},
 };
