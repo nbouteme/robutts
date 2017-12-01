@@ -1,6 +1,7 @@
 #include <robutts.h>
 #include <scene.h>
 #include <robot.h>
+#include <item.h>
 
 int intersect_ray_circle(ray_t ra, vec2_t pos, float r, float *d) {
 	vec2_t f = vec2_sub(ra.ori, pos);
@@ -37,7 +38,8 @@ intersect_data_t raycast_scene(ray_t r, int self) {
 	intersect_data_t ret = (intersect_data_t) {INFINITY, COLL_NONE, {0}};
 	float f, rd;
 	int i;
-	
+	robot_t *rob;
+
 	for (i = 0; i < game_state->n_robots; ++i) {
 		if (i == self)
 			continue;
@@ -57,6 +59,18 @@ intersect_data_t raycast_scene(ray_t r, int self) {
 		if (!intersect_ray_circle(r, game_state->items[i].pos, rd, &f))
 			continue;
 		if (f >= ret.depth)
+			continue;
+		if (f <= 0.001f) {
+			rob = &game_state->robots[self];
+			if (rob->priv.ic)
+				break;
+			rob->priv.ic = 1;
+			collectable_item_vtable[game_state->items[i].type]
+				.activate(&game_state->items[i], rob);
+		}
+		// On veux que les bases et les explosions soient invisible
+		if (game_state->items[i].type == ITEM_EXPLOSION ||
+			game_state->items[i].type == ITEM_BASE)
 			continue;
 		ret.depth = f;
 		ret.type = COLL_ITEM;

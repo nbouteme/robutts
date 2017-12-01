@@ -276,7 +276,6 @@ void update_game_state() {
 	ray_t r;
 	vec2_t my_dir;
 	intersect_data_t closest_actor, wall;
-	pitem_t *item;
 	vec2_t rot;
 	float f;
 
@@ -363,12 +362,12 @@ void update_game_state() {
 									   c->priv.linear_speed);
 				break;
 			case COLL_ITEM:
-				if (c->priv.ic)
+/*				if (c->priv.ic)
 					break;
 				c->priv.ic = 1;
 				item = &game_state->items[c->priv.obj_idx_buffer[k].item_id];
 				collectable_item_vtable[item->type].activate(item, c);
-				break;
+*/				break;
 			case COLL_ROBOT:
 				collision_with_robot(c, &game_state->robots[c->priv.obj_idx_buffer[k].robot_id]);
 				break;
