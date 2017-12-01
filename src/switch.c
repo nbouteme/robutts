@@ -12,8 +12,7 @@ process_t subbot[2];
 int selected = 0;
 int nbots = 2;
 int colors[2][4] = {
-	{255, 255, 0, 0},
-	{0, 255, 255, 0}
+	{255, 255, 0, 0}, {0, 255, 255, 0}
 };
 
 static void key_callback(unsigned char key, int x, int y)
@@ -36,11 +35,9 @@ void init(int argc, char *argv[]) {
 	static int already = 0;
 	command_t cmd = CMD_INIT;
 	int i;
-
 	(void)argc;
 	(void)argv;
-	if (already)
-		return;
+	if (already) return;
 	already = 1;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STENCIL);

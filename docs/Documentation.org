@@ -5,9 +5,8 @@
 #+OPTIONS: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
 #+OPTIONS: timestamp:t title:t toc:t todo:t |:t
 #+TITLE: Documentation
-#+AUTHOR: Nabil B\textsc{outemeur} \\
-#+AUTHOR: Alizé N\textsc{agel}
-#+EMAIL: nabil.boutemeur@gmail.com
+#+AUTHOR: Alizé N\textsc{agel} \\
+#+AUTHOR: Nabil B\textsc{outemeur}
 #+LANGUAGE: fr
 #+SELECT_TAGS: export
 #+EXCLUDE_TAGS: noexport
@@ -419,11 +418,11 @@ Le fichier librobutts.c défini une interface à implémenter pour créer
 son robot.
 
 \begin{minted}{c}
-void init(int, char *[]) __attribute__ ((weak, alias("do_nothing")));
-void update() __attribute__ ((weak, alias("do_nothing")));
-void destroy() __attribute__ ((weak, alias("do_nothing")));
-void item_collected(item_t) __attribute__ ((weak, alias("do_nothing")));
-void collision(coll_t) __attribute__ ((weak, alias("do_nothing")));
+void init(int, char *[]);
+void update();
+void destroy();
+void item_collected(item_t);
+void collision(coll_t);
 
 robot_state my_state;
 
@@ -436,7 +435,7 @@ robot_properties my_robot __attribute__ ((weak)) = {
 };
 \end{minted}
 
-Si vous n'implémentez pas une méthode, elle est remplacé par une
+Si vous n'implémentez pas une méthode, elle sera remplacée par une
 méthode qui ne fait rien, ce qui n'est pas génant.
 
 my_state est une variable globale qu'il faut eventuellement modifier à
@@ -453,12 +452,12 @@ haut et bas actives le moteur linéaire.  La touche espace utilise le
 premier objet du sac, la touche K fait quitter brusquement le
 processus, et L le fait tourner dans une boucle infinie.
 
-Une fenètre apparait et montre visuellement les rayons "émis" par les
+Une fenêtre apparait et montre visuellement les rayons "émis" par les
 capteurs, et la couleur des rayons indique le type de l'objet
 touché. Jaune pour un mur, Cyan pour un objet, et blanc pour un autre
 robot. Chaque ligne va aussi loin que la profondeur décrite par le
 capteur, et le placement des lignes est relatif à l'avant du robot, ce
-qui permet de visuallement reconstruire l'environnement.
+qui permet de visuellement reconstruire l'environnement.
 
 #+attr_latex: :width 7cm
 [[file:ex.png]]
@@ -470,11 +469,13 @@ variante n'inclue pas les instructions d'entrée sortie et ajoute une
 instruction '|', pour halter l'éxecution du programme. Le language est
 donc consitué de 7 instructions.
 
-L'interpréteur se lie au jeu comme tout autre programme, mais prends
+L'interpréteur se lie au jeu comme tout autre programme, mais prend
 aussi en entrée un fichier brainfuck à éxecuter. Lorsqu'un évenement
 est envoyé par le serveur de jeu, l'interpreteur place dans des cases
 mémoires les données pertinantes de l'évenement et invoque le
-programme.
+programme. La mémoire du programme n'est pas réinitialisée entre
+chaque invocation donc cela permet d'avoir un certain niveau de
+rétention.
 
 ** Intermédiaires
 
@@ -525,5 +526,13 @@ Sur la machine qui héberge la partie, faire:
 ./robutts assets/back.tga [robots]... "./remote_client [ip] [port] [./robot1]"
 #+END_SRC
 
-Note: remote_serveur ne fait que rediriger l'entrée/sortie standard sur des
-sockets, donc il peut être utilisé pour n'importe qu'elle autre commande.
+Note: remote_serveur ne fait que rediriger l'entrée/sortie standard
+d'une commande sur des sockets, donc il peut être utilisé pour
+n'importe qu'elle autre commande.
+
+** Répartition du travail
+
+La communication interprocessus, l'interface utilisateur, maths et interface système par Nabil Boutemeur.
+Moteur de jeu, physique et mécanismes de jeu par Alizé Nagel.
+
+Images et sons tirées de GIMP et de The Legend Of Zelda \copyright: A Link To The Past

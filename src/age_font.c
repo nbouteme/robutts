@@ -44,9 +44,9 @@ age_font_t *load_font(char *texfile, char *descfile) {
 }
 
 static void blit_char(unsigned *buffer,
-			   age_font_t *file,
-			   age_symbol_t *sym,
-			   int x, int y, int w);
+					  age_font_t *file,
+					  age_symbol_t *sym,
+					  int x, int y, int w);
 
 static int max(int a, int b) {
 	return a < b ? b : a;
@@ -54,7 +54,7 @@ static int max(int a, int b) {
 
 /*
   Format 0xARGB
- */
+*/
 void *make_string_bitmap(age_font_t *font, char *str, int *w, int *h) {
 	char *s = str;
 	int width = 0;
@@ -112,9 +112,9 @@ void *make_string_bitmap(age_font_t *font, char *str, int *w, int *h) {
 }
 
 static void blit_char(unsigned *buffer,
-			   age_font_t *file,
-			   age_symbol_t *sym,
-			   int x, int y, int w) {
+					  age_font_t *file,
+					  age_symbol_t *sym,
+					  int x, int y, int w) {
 	int i, j, dy, dx, sy, sx;
 	y += sym->yoffset;
 	x += sym->xoffset;

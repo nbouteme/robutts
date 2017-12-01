@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include <robutts.h>
+#include <assets.h>
 #include <pulse/pulseaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,9 +79,10 @@ static wav_t *readwav(void *fdata) {
 }
 
 static void get_spec(wav_t *wav, pa_sample_spec *pss, pa_channel_map *map) {
-	static const pa_channel_position_t channels[] = {PA_CHANNEL_POSITION_MONO,
-													 PA_CHANNEL_POSITION_FRONT_LEFT,
-													 PA_CHANNEL_POSITION_FRONT_RIGHT};
+	static const pa_channel_position_t channels[] =
+		{PA_CHANNEL_POSITION_MONO,
+		 PA_CHANNEL_POSITION_FRONT_LEFT,
+		 PA_CHANNEL_POSITION_FRONT_RIGHT};
 
 	pss->format = PA_SAMPLE_S16LE;
 	pss->rate = wav->fmt_chunk->SampleRate;
@@ -221,6 +223,8 @@ void destroy_audio_sample(wave_ctx *wav) {
 }
 
 void destroy_audio_player(audio_ctx *ctx) {
+	if (!ctx)
+		return;
 	pa_context_disconnect(ctx->ctx);
 	pa_context_unref(ctx->ctx);
 	pa_threaded_mainloop_free(ctx->mainloop);

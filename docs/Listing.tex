@@ -1,0 +1,98 @@
+% Created 2017-11-27 Mon 13:42
+% Intended LaTeX compiler: pdflatex
+\documentclass[12pt,french]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[skins,minted,breakable]{tcolorbox}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage{minted}
+\usepackage{babel}
+\usepackage{tikz}
+\usepackage{fullpage}
+\usepackage{minted}
+\usepackage{url}
+\usepackage[defaultlines=10,all]{nowidow}
+\author{
+  Nabil B\textsc{outemeur} \\
+  Alizé N\textsc{agel}
+}
+\date{\today}
+\title{Listing du projet}
+\hypersetup{
+ pdfauthor={Nabil B\textsc{outemeur} \\
+Alizé N\textsc{agel}},
+ pdftitle={Documentation},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Nabil BOUTEMEUR}, 
+ pdflang={Frenchb}}
+\begin{document}
+
+\maketitle
+
+\catcode`\_=13 
+\def_{\textunderscore}
+
+\tableofcontents
+
+\catcode`_=8
+
+\newcommand\purl[1]{\detokenize\expandafter{#1}} % "protected url"
+
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\renewcommand\thesubsubsection{}
+
+\makeatletter
+
+\definecolor{mlg}{RGB}{247,247,247}
+
+\newcommand{\inclfile}[1] {
+  \pagebreak
+  \filename@parse{#1}
+  \subsection{\detokenize\expandafter{\filename@base}.\detokenize\expandafter{\filename@ext}}
+  \tcbinputlisting{
+      listing file=#1,% <------- file name
+      enhanced,
+      listing only,
+      minted options={
+        % frame=lines,
+        % framesep=2mm,
+        tabsize=4,
+        baselinestretch=1.0,
+        % bgcolor=lightgray,
+        linenos,
+        breaklines,
+      },
+      minted language=C,
+      boxrule=0pt,
+      boxsep=0pt,
+      colback=mlg,
+      frame hidden,
+      borderline horizontal={0.4pt}{0pt}{black},
+      breakable=unlimited,
+    }
+  
+}
+
+\foreach \file in {../src/age_font.c, ../src/assets_manager.c, ../src/audiodummy.c, ../src/audioopenal.c, ../src/audiopulseaudio.c, ../src/bf.c, ../src/forward_bot.c, ../src/fs.c, ../src/heavy_human.c, ../src/human_bot.c, ../src/items.c, ../src/librobutts.c, ../src/mat3.c, ../src/mat4.c, ../src/mgl.c, ../src/os.c, ../src/remote_client.c, ../src/remote_server.c, ../src/robot.c, ../src/robutt.c, ../src/scene.c, ../src/shader.c, ../src/sprite.c, ../src/switch.c, ../src/texture.c, ../src/vec2.c, ../src/vec3.c, ../src/vec4.c, ../src/visualizer.c} {
+  \inclfile{\file}
+}
+
+\foreach \file in {../include/assets.h, ../include/audio.h, ../include/font.h, ../include/item.h, ../include/librobutts.h, ../include/mat3.h, ../include/mat4.h, ../include/mgl.h, ../include/process.h, ../include/robot.h, ../include/robutts.h, ../include/scene.h, ../include/shaders.h, ../include/sprite.h, ../include/texture.h, ../include/vec2.h, ../include/vec3.h, ../include/vec4.h} {
+  \inclfile{\file}
+}
+
+\makeatother
+
+\end{document}

@@ -52,6 +52,8 @@ void display_game_state() {
 }
 
 void destroy_renderer(sprite_renderer_t *sr) {
+	if (!sr)
+		return;
 	glDeleteProgram(sr->shader);
 	glDeleteVertexArrays(1, &sr->vao);
 	free(sr);
@@ -253,6 +255,10 @@ void load_ressources(game_state_t *gs, char *map) {
 		free(btmp.buff);
 	}
 	gs->nimbus = load_font("assets/nimbus20r.tga", "assets/nimbus20r.agefnt");
+	if (tex[0].width != 1280 || tex[0].height != 720) {
+		puts("Wrong arena dimensions");
+		exit(1);
+	}
 	gs->bmp = tex[0].buff;
 	free(tex);
 }

@@ -5,12 +5,16 @@
 #include <errno.h>
 #include "librobutts.h"
 
-void init(int, char *[])	__attribute__ ((weak, alias("do_nothing")));
-void update_state()			__attribute__ ((weak, alias("do_nothing")));
-void update()				__attribute__ ((weak, alias("do_nothing")));
-void destroy()				__attribute__ ((weak, alias("do_nothing")));
-void item_collected(item_t)	__attribute__ ((weak, alias("do_nothing")));
-void collision(coll_t)		__attribute__ ((weak, alias("do_nothing")));
+#define WEAK __attribute__ ((weak, alias("do_nothing")))
+
+void init(int, char *[])	WEAK;
+void update_state()			WEAK;
+void update()				WEAK;
+void destroy()				WEAK;
+void item_collected(item_t)	WEAK;
+void collision(coll_t)		WEAK;
+
+#undef WEAK
 
 void do_nothing() {
 }
