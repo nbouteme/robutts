@@ -42,11 +42,11 @@ au joueur pour faciliter certaines stratégies.
 
 ** Fonctionnement technique
 
-Un robot est une machine circulaire composé de 64 capteurs
-uniformément répartis sur son cercle externe, un moteur linéaire
-réversible, et un moteur angulaire réversible, et d'une certaine
-masse.  Il possède aussi un sac de capacité infinie pour stocker des
-objets qu'il collecte et qui sont utilisable.
+Un robot est une machine circulaire (parce que c'est plus simple)
+composé de 64 capteurs uniformément répartis sur son cercle externe,
+un moteur linéaire réversible, et un moteur angulaire réversible, et
+d'une certaine masse.  Il possède aussi un sac de capacité infinie
+pour stocker des objets qu'il collecte et qui sont utilisable.
 
 Le programme fonctionne à travers un protocole de communication
 interprocessus.  Le programme d'un robot, le client, communique au
@@ -300,10 +300,13 @@ chaque appel et décide si il est temps ou non de mettre à jour l'état.
 *** Ressources
 
 À la compilation, toutes les ressources du dossier assets sont
-embarqués dans l'éxecutable, et lorsqu'un fichier est lu par le
-programme, il vérifie d'abord si une version existe dans le système de
-fichier relatif au répertoire courant avant de charger le fichier
-interne.
+embarqués dans l'éxecutable, et lorsqu'un fichier est demandé par le
+programme, une version qui existe embarquée dans l'exécutable est
+privilégiée par rapport à une version sur le système de fichier.
+
+Tout les fichiers du répertoire "assets" sont embarqué dans
+l'éxecutable et leur noms correspondent au chemin relatif à la racine
+du projet.
 
 De ce fait, le programme peut être executé avec le terrain par défaut "assets/back.tga"
 #+BEGIN_SRC sh

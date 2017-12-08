@@ -6,6 +6,19 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <poll.h>
+#include <sys/ioctl.h>
+#include <netinet/tcp.h>
+
+#include <time.h>
+
+// call this function to start a nanosecond-resolution timer
+struct timespec timer_start(){
+    struct timespec start_time;
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start_time);
+    return start_time;
+}
+
+long nano_diff(struct timespec a, struct timespec b);
 
 robot_properties my_robot = {
 	1.0f, 2.0f, 1.0f, 0x0FFF00, "default name"
@@ -20,9 +33,12 @@ void init(int argc, char *argv[]) {
 	struct in_addr sin_addr;
 	struct sockaddr_in addr;
 	command_t cmd = CMD_INIT;
+	int broadcast = 1;
 
 	(void)argc;
 	sfd = socket(AF_INET, SOCK_STREAM, 0);
+	setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &broadcast, sizeof(int));
+	setsockopt(sfd, SOL_TCP, TCP_NODELAY, &broadcast, sizeof(int));
 	inet_aton(argv[1], &sin_addr);
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(atoi(argv[2]));
@@ -37,22 +53,28 @@ void init(int argc, char *argv[]) {
 
 void exec_subcmd_stream() {
 	request_t r = 0;
+	unsigned count;
 	int i;
 	do {
-		exact_read(sfd, &r, sizeof(r));
+		recv(sfd, &r, sizeof(r), MSG_PEEK | MSG_WAITALL);
+		ioctl(sfd, FIONREAD, &count);
 		switch (r) {
 		case REQ_UPDATE:
+			exact_read(sfd, &r, sizeof(r));
 			exact_read(sfd, &my_state, sizeof(int) * 2);
+			update_pending = 0;
 			break;
 		case REQ_USE_ITEM:
+			recv(sfd, &r, sizeof(r), 0);
 			exact_read(sfd, &i, sizeof(int));
 			i = use_item(i);
 			write(sfd, &i, sizeof(int));
 			break;
 		case REQ_END:
+			recv(sfd, &r, sizeof(r), 0);
 			break;
 		default:
-			fprintf(stderr, "Unknown req from serv END %#x %#x\n", REQ_END, r);
+			recv(sfd, &r, sizeof(r), 0);
 			break;
 		}
 	} while (r != REQ_END);
@@ -61,19 +83,21 @@ void exec_subcmd_stream() {
 void update() {
 	command_t c = CMD_UPDATE;
 	poll(&fds, 1, 0);
-	if (!update_pending) {
+	if (!update_pending && (fds.revents & POLLOUT)) {
 		write(sfd, &c, sizeof(c));
 		update_pending = 1;
 	}
-	if (fds.revents & POLLIN) {
+	if (update_pending && (fds.revents & POLLIN)) {
 		exec_subcmd_stream();
-		update_pending = 0;
 	}
 }
 
 void update_state() {
 	command_t c = CMD_UPDATE_STATE;
 	if (update_pending)
+		return;
+	poll(&fds, 1, 0);
+	if (!(fds.revents & POLLOUT))
 		return;
 	write(sfd, &c, sizeof(c));
 	write(sfd, &my_state, sizeof(my_state));

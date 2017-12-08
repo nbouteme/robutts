@@ -31,10 +31,12 @@ robot_properties my_robot __attribute__ ((weak)) = {
 
 int use_item(int idx) {
 	request_t r = REQ_USE_ITEM;
-	if (write(1, &r, sizeof(r)) == -1)
+	char buf[8];
+	int *d = (void*)buf;
+	d[0] = r;
+	d[1] = idx;
+	if (write(1, d, sizeof(int) + sizeof(request_t)) == -1)
 		perror("client write failed");
-	if (write(1, &idx, sizeof(idx)) == -1)
-		perror("client write2 failed");
 	if (exact_read(0, &idx, sizeof(idx)) == -1) {
 		perror("client read failed");
 	}
@@ -47,6 +49,8 @@ int main(int argc, char *argv[argc])
 	item_t t;
 	coll_t c;
 	request_t r;
+	char buf[24];
+	int *d = (void*)buf;
 	static int in = 0;
 
 	memset(&my_state, 0, sizeof(my_state));
@@ -78,11 +82,10 @@ int main(int argc, char *argv[argc])
 		case CMD_UPDATE:
 			update();
 
-			r = REQ_UPDATE;
-			write(1, &r, sizeof(r));
-			write(1, &my_state, sizeof(int) * 2);
-			r = REQ_END;
-			write(1, &r, sizeof(r));
+			d[0] = REQ_UPDATE;
+			memcpy(d + 1, &my_state, sizeof(int) * 2);
+			d[3] = REQ_END;
+			write(1, d, sizeof(int) * 4);
 			break;
 		case CMD_DESTROY:
 			destroy();

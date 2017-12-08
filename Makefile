@@ -41,7 +41,7 @@ CFLAGS += $(AUDIO_CFLAGS)
 GL_LIBRARIES = $(shell pkg-config gl --libs)
 GL_CFLAGS = $(shell pkg-config gl --cflags)
 
-TARGETS = robutts human_bot heavy_bot visualizer switch forward rbf remote_client remote_server
+TARGETS = robutts human_bot heavy_bot visualizer switch forward rbf remote_client remote_server remote_bclient remote_bserver
 
 robutts_SRC := 	os.c fs.c robot.c shader.c texture.c sprite.c items.c\
 				scene.c vec2.c vec3.c vec4.c mat3.c mat4.c age_font.c mgl.c robutt.c\
@@ -51,7 +51,7 @@ robutts_CFLAGS := -DASSET_MANAGER
 robutts_LFLAGS := $(GL_LIBRARIES) -lm -lglut -lGLU $(AUDIO_LIBRARIES) -T build/s
 
 human_bot_SRC := 	librobutts.c human_bot.c shader.c fs.c os.c vec2.c\
-					vec3.c vec4.c mat3.c mat4.c mgl.c assets_manager.c assets.res
+					vec3.c vec4.c mat3.c mat4.c mgl.c assets_manager.c assets.res texture.c sprite.c
 human_bot_CFLAGS := -DASSET_MANAGER
 human_bot_LFLAGS := $(GL_LIBRARIES) -lm -lglut -T build/s
 
@@ -70,8 +70,15 @@ switch_LFLAGS := $(GL_LIBRARIES) -lm -lglut
 
 forward_SRC := librobutts.c os.c forward_bot.c
 rbf_SRC := librobutts.c os.c fs.c bf.c
+
 remote_client_SRC := librobutts.c os.c remote_client.c
-remote_server_SRC := librobutts.c os.c remote_client.c
+remote_bclient_SRC := librobutts.c os.c remote_bclient.c
+
+remote_server_SRC := remote_server.c
+remote_bserver_SRC := remote_bserver.c
+
+remote_bclient_LFLAGS := -lpthread
+
 
 BUILD_DIR = ./build/
 

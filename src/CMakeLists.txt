@@ -79,6 +79,8 @@ ADD_EXECUTABLE(human_bot
   librobutts.c
   human_bot.c
   shader.c
+  sprite.c
+  texture.c
   os.c
   fs.c
   vec2.c
@@ -192,6 +194,20 @@ ADD_EXECUTABLE(remote_client
 
 ADD_EXECUTABLE(remote_server
   remote_server.c
+)
+
+ADD_EXECUTABLE(remote_bclient
+  librobutts.c
+  remote_bclient.c
+  os.c
+)
+
+TARGET_LINK_LIBRARIES(remote_bclient
+  pthread
+)
+
+ADD_EXECUTABLE(remote_bserver
+  remote_bserver.c
 )
 
 INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/ PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

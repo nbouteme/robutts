@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <robutts.h>
 #include <shaders.h>
+#include <texture.h>
+#include <sprite.h>
 #include <mat4.h>
 
 robot_properties my_robot = {
@@ -14,6 +16,8 @@ int up, right, left, down, use;
 int shader;
 unsigned vao;
 int du, cu;
+sprite_renderer_t *sr;
+unsigned item_textures[6];
 
 /*
   La gestion des touches de glut est maladroite
@@ -22,14 +26,15 @@ static void key_callback(unsigned char key, int x, int y)
 {
 	(void)x;
 	(void)y;
+	fprintf(stderr, "key: %d\n", key);
 	if (key == 'k') {
 		exit(43);
 	}
 	if (key == 'l') {
 		while(1);
 	}
-	if (key == ' ') {
-		use = 1;
+	if ('0' <= key && key <= '9') {
+		use = key - '0';
 	}
 }
 
@@ -81,6 +86,19 @@ void display_sensors_state() {
 	glBindVertexArray(vao);
     glDrawArrays(GL_LINES, 0, 128);
 
+	int max = my_state.bag_size > 10 ? 10 : my_state.bag_size;
+
+	for (int i = 0; i < max; ++i) {
+		item_t *item = &my_state.bag[i];
+		draw_sprite(sr, (sprite_t) {
+				item_textures[*item],
+				(vec2_t) {16 * i, 240},
+				0,
+				~0,
+				(vec2_t){16, 16}
+		});
+	}
+
 	glUseProgram(0);
     glBindVertexArray(0);
 	glutSwapBuffers();
@@ -99,12 +117,17 @@ void init(int argc, char *argv[]) {
 	int proju;
 	mat4_t proj;
 
+	if (argc > 1) {
+		fprintf(stderr, "%s\n", argv[1]);
+		strncpy(my_robot.name, argv[1], 32);
+		my_robot.name[31] = 0;
+	}
 	(void)argc;
 	(void)argv;
 	if (already)
 		return;
 	already = 1;
-	use = 0;
+	use = -1;
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STENCIL);
 	glutInitContextVersion(3, 3);
@@ -153,6 +176,17 @@ void init(int argc, char *argv[]) {
 	
 	proj = mat4_ortho(0.0f, 4 * 128.0f, 4 * 128.0f, 0.0f, -1.0f, 1.0f);
 	glUniformMatrix4fv(proju, 1, GL_FALSE, &proj.s[0].x);
+
+	sr = make_sprite_renderer_window(256, 256);
+	bitmap_t bmp;
+	load_tga(&bmp, "assets/i_score.tga");
+	make_texture(&item_textures[ITEM_POINT], bmp);
+
+	load_tga(&bmp, "assets/i_bomb.tga");
+	make_texture(&item_textures[ITEM_BOMB], bmp);
+
+	load_tga(&bmp, "assets/i_bomb_act.tga");
+	make_texture(&item_textures[ITEM_BOMB_ACT], bmp);
 }
 
 void update_state() {
@@ -163,8 +197,9 @@ void update_state() {
 void update() {
 	my_state.lin_eng_state = up - down;
 	my_state.rot_eng_state = left - right;
-	if (use) {
-		use = 0;
-		use_item(0);
+	if (use >= 0) {
+		int i = use_item(use);
+		fprintf(stderr, "use item status %#x\n", i);
+		use = -1;
 	}
 }

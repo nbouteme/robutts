@@ -34,5 +34,6 @@ typedef struct sprite_renderer {
 
 void draw_sprite(sprite_renderer_t *self, sprite_t sprite);
 sprite_renderer_t *make_sprite_renderer();
+sprite_renderer_t *make_sprite_renderer_window(int w, int h);
 
 #endif /* SPRITE_H */

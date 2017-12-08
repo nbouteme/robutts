@@ -87,6 +87,7 @@ void cleanup() {
 }
 
 void kill_robot(robot_t *c, death_reason_t reason) {
+	printf("Killed because of %d\n", reason);
 	if (reason == D_LOST || reason == D_BROKEN) {
 		send_command(c, CMD_DESTROY);
 		exec_cmd_stream(c);
@@ -114,7 +115,7 @@ void exec_cmd_stream(robot_t *c) {
 	int i;
 	pitem_t *item;
 
-	ualarm(50000, 0);
+	//ualarm(50000, 0);
 	do {
 		exact_read(c->process.stdout, &r, sizeof(r));
 		switch (r) {
@@ -380,6 +381,12 @@ void update_game_state() {
 		}
 	}
 	coalesce_robots();
+
+	/* 
+	   TODO: En fait, même les robots aurait pu être implémenté en tant qu'objets
+	   "objet" devrait plutot s'appeler "acteur"
+	 */
+	
 	for (i = 0; i < game_state->n_items; ++i) {
 		collectable_item_vtable[game_state->items[i].type].update(&game_state->items[i]);
 	}

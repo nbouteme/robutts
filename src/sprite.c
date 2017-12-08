@@ -2,7 +2,7 @@
 #include <sprite.h>
 #include <shaders.h>
 
-sprite_renderer_t *make_sprite_renderer() {
+sprite_renderer_t *make_sprite_renderer_window(int w, int h) {
 	sprite_renderer_t *self = malloc(sizeof(*self));
 	int v = load_shader("assets/vshader.glsl", GL_VERTEX_SHADER);
 	int f = load_shader("assets/fshader.glsl", GL_FRAGMENT_SHADER);
@@ -38,11 +38,15 @@ sprite_renderer_t *make_sprite_renderer() {
 	u = glGetUniformLocation(self->shader, "tex");
 	glUniform1i(u, 0);
 	
-	self->proj = mat4_ortho(0.0f, 1280.0f, 720.0f, 0.0f, -1.0f, 1.0f);
+	self->proj = mat4_ortho(0.0f, w, h, 0.0f, -1.0f, 1.0f);
 
 	glUniformMatrix4fv(self->proj_u, 1, GL_FALSE, &self->proj.s[0].x);
 	glUseProgram(0);
 	return self;
+}
+
+sprite_renderer_t *make_sprite_renderer() {
+	return make_sprite_renderer_window(1280, 720);
 }
 
 void draw_sprite(sprite_renderer_t *self, sprite_t sprite) {

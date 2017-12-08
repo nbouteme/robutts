@@ -35,7 +35,7 @@ void spawn_item(pitem_t item) {
 void spawn_rand_item() {
 	game_state_t *gs = get_game_state();
 	vec2_t pos = gs->ispawns[rand() % gs->nispawns];
-	item_t type = 2;//rand() % 3; // Si ton objet doit pouvoir etre spawner, incrementer le 3
+	item_t type = rand() % 3; // Si ton objet doit pouvoir etre spawner, incrementer le 3
 	spawn_item((pitem_t) {
 			pos, type, 0
 	});
@@ -54,6 +54,8 @@ void remove_item(game_state_t *gs, pitem_t *item) {
 }
 
 void score_item(pitem_t *self, robot_t *r) {
+	if (self->user_ptr)
+		return;
 	bag_add(r, &(pitem_t){(vec2_t){0, 0}, ITEM_POINT, r}); //Je me le point dans le sac
 	game_state_t *gs = get_game_state();
 	play_wav_async(gs->sound_player, gs->item_pick);

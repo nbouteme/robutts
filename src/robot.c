@@ -94,7 +94,7 @@ int init_robot(robot_t *c, vec2_t position) {
 	c->state.life = 100.0f;
 	c->state.rays = 64;
 
-	alarm(3);
+	alarm(30);
 	send_command(c, CMD_INIT);
 	read(c->process.stdout, &c->prop, sizeof(c->prop));
 	alarm(0);
