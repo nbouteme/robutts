@@ -29,7 +29,7 @@ void *refuse(void *args) {
 		int rfd = accept(tcp, (void*)&tcp_saddr, &csize);
 		fprintf(stderr, "Sending a fuck-off to %d\n", rfd);
 		if (rfd < 0)
-			perror("accept");
+			perror("Failed to fuck off");
 		write(rfd, &get_out_of_my_life_i_hate_you_you_f$cking_a$$hole, sizeof(get_out_of_my_life_i_hate_you_you_f$cking_a$$hole));
 		close(rfd);
 	}
@@ -54,10 +54,15 @@ void init(int argc, char *argv[]) {
 
 	(void)argc;
 	int udp = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (udp < 0) {
+		perror("Failed to create UDP socket");
+		exit(1);
+	}
 	inet_aton("255.255.255.255", &udp_inaddr);
 	udp_saddr.sin_family = AF_INET;
 	udp_saddr.sin_port = htons(29295);
 	udp_saddr.sin_addr = udp_inaddr;
+
 	setsockopt(udp, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(int));
 	setsockopt(udp, SOL_SOCKET, SO_REUSEADDR, &broadcast, sizeof(int));
 	setsockopt(udp, SOL_SOCKET, SO_REUSEPORT, &broadcast, sizeof(int));
@@ -65,6 +70,10 @@ void init(int argc, char *argv[]) {
 	int port = atoi(argv[1]);
 
 	tcp = socket(AF_INET, SOCK_STREAM, 0);
+	if (tcp < 0) {
+		perror("Failed to create TCP socket");
+		exit(1);
+	}
 	setsockopt(tcp, SOL_SOCKET, SO_REUSEADDR, &broadcast, sizeof(int));
 	setsockopt(tcp, SOL_TCP, TCP_NODELAY, &broadcast, sizeof(int));
 	//setsockopt(tcp, SOL_SOCKET, SO_LINGER, &lo, sizeof(lo));
@@ -72,9 +81,14 @@ void init(int argc, char *argv[]) {
 	tcp_saddr.sin_family = AF_INET;
 	tcp_saddr.sin_port = htons(atoi(argv[1]));
 	tcp_saddr.sin_addr = tcp_inaddr;
-	bind(tcp, (void*)&tcp_saddr, sizeof(tcp_saddr));
-	perror("client bind");
-	listen(tcp, 0);
+	if (bind(tcp, (void*)&tcp_saddr, sizeof(tcp_saddr)) < 0) {
+		perror("Failed to bind");
+		exit(1);
+	}
+	if (listen(tcp, 0) < 0){
+		perror("Failed to listed");
+		exit(1);
+	}
 	fds = (struct pollfd){tcp, POLLIN, 0};
 	while (1) {
 		sendto(udp, &port, sizeof(port), 0, (void*)&udp_saddr, sizeof(udp_saddr));
@@ -86,7 +100,10 @@ void init(int argc, char *argv[]) {
 	close(udp);
 	socklen_t csize = sizeof(tcp_saddr);
 	sfd = accept(tcp, (void*)&tcp_saddr, &csize);
-
+	if (sfd < 0) {
+		perror("Failed to accept main client");
+		exit(1);
+	}
 	int i_lovey_ou = 1;
 	write(sfd, &i_lovey_ou, sizeof(i_lovey_ou));
 	pthread_t thread;

@@ -14,6 +14,8 @@
 
 process_t subbot;
 
+struct pollfd fds;
+
 int make_socket_process(int s, process_t *ret, char *cmd) {
 	ret->pid = fork();
 	if (ret->pid == 0) { // child
@@ -54,8 +56,11 @@ int main(int argc, char *argv[argc])
 	addr.sin_port = htons(29295);
 	addr.sin_addr.s_addr = htons(INADDR_ANY);
 
-	bind(sfd, (void*)&addr, sizeof(addr));
-	perror("bind");
+	if (bind(sfd, (void*)&addr, sizeof(addr)) < 0) {
+		perror("Failed to bind");
+		return 1;
+	}
+
 	while (1) {
 		printf("Waiting for a player slot to be available...\n");
 		{
@@ -75,6 +80,10 @@ int main(int argc, char *argv[argc])
 		}
 		printf("Connecting to port %d\n", port);
 		client_sock = socket(AF_INET, SOCK_STREAM, 0);
+		if (client_sock < 0) {
+			perror("Failed to create client socket");
+			return 1;
+		}			
 		o_addr.sin_family = AF_INET;
 		o_addr.sin_port = htons(port);
 		printf("connect to 0x%#x\n", o_addr.sin_addr.s_addr);
@@ -85,7 +94,13 @@ int main(int argc, char *argv[argc])
 		}
 		perror("Connect:");
 		int do_you_love_me;
-		read(client_sock, &do_you_love_me, sizeof(do_you_love_me));
+		fds = (struct pollfd){client_sock, POLLIN, 0};
+		if (poll(&fds, 1, 250) == 0) {
+			puts("The search continues...");
+			usleep(250000);
+			continue;
+		}
+		exact_read(client_sock, &do_you_love_me, sizeof(do_you_love_me));
 		if (do_you_love_me) {
 			break;
 		}
